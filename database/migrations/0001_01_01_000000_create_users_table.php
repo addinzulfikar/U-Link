@@ -20,7 +20,7 @@ return new class extends Migration
                 email VARCHAR(255) NOT NULL UNIQUE,
                 email_verified_at TIMESTAMP NULL,
                 password VARCHAR(255) NOT NULL,
-                role VARCHAR(50) NOT NULL DEFAULT \'user\',
+                role VARCHAR(50) NOT NULL DEFAULT \'user\' CHECK (role IN (\'user\', \'admin_toko\', \'super_admin\')),
                 remember_token VARCHAR(100) NULL,
                 created_at TIMESTAMP NULL,
                 updated_at TIMESTAMP NULL

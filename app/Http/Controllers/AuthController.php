@@ -44,7 +44,7 @@ class AuthController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'email' => ['Email atau password yang Anda masukkan salah.'],
+            'email' => ['Kredensial yang Anda masukkan salah.'],
         ]);
     }
 
