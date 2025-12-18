@@ -1,58 +1,145 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# U-LINK - Platform Sharing UMKM
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Platform untuk UMKM (Usaha Mikro Kecil Menengah) saling berbagi dan mempromosikan produk serta jasa mereka.
 
-## About Laravel
+## Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Sistem Autentikasi Multi-Role
+Platform ini mendukung 3 jenis pengguna dengan hak akses berbeda:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+1. **User (Pembeli)**
+   - Melihat produk dan jasa dari UMKM
+   - Mencari UMKM berdasarkan kategori
+   - Menyimpan UMKM favorit
+   - Memberikan review dan rating
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+2. **Admin Toko (UMKM)**
+   - Mengelola profil toko UMKM
+   - Menambah dan mengedit produk/jasa
+   - Melihat statistik toko
+   - Merespon review dari pelanggan
+   - Promosi dagangan
 
-## Learning Laravel
+3. **Super Admin**
+   - Mengelola semua pengguna (User, Admin Toko)
+   - Moderasi konten produk dan jasa
+   - Melihat statistik platform secara keseluruhan
+   - Mengelola kategori produk/jasa
+   - Mengelola pengaturan sistem
+   - Verifikasi dan approve UMKM baru
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Instalasi
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prasyarat
+- PHP 8.2 or higher
+- Composer
+- PostgreSQL
+- Node.js & NPM
 
-## Laravel Sponsors
+### Langkah Instalasi
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. Clone repository
+```bash
+git clone https://github.com/addinzulfikar/U-LINK.git
+cd U-LINK
+```
 
-### Premium Partners
+2. Install dependencies
+```bash
+composer install
+npm install
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+3. Setup environment
+```bash
+cp .env.example .env
+```
 
-## Contributing
+4. Konfigurasi database di file `.env`
+```
+DB_CONNECTION=pgsql
+DB_HOST=your-database-host
+DB_PORT=5432
+DB_DATABASE=your-database-name
+DB_USERNAME=your-username
+DB_PASSWORD=your-password
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+5. Generate application key
+```bash
+php artisan key:generate
+```
 
-## Code of Conduct
+6. Run migrations
+```bash
+php artisan migrate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+7. Seed database dengan akun default
+```bash
+php artisan db:seed
+```
 
-## Security Vulnerabilities
+8. Build assets
+```bash
+npm run build
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+9. Start development server
+```bash
+php artisan serve
+```
+
+Aplikasi akan berjalan di `http://localhost:8000`
+
+## Akun Default untuk Testing
+
+Setelah menjalankan seeder, Anda dapat login dengan akun berikut:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Super Admin | superadmin@ulink.com | password123 |
+| Admin Toko | admintoko@ulink.com | password123 |
+| User | user@ulink.com | password123 |
+
+## Struktur Routing
+
+### Public Routes
+- `/` - Halaman utama
+- `/login` - Halaman login
+- `/register` - Halaman registrasi
+
+### Protected Routes (Memerlukan autentikasi)
+- `/dashboard` - Dashboard untuk User (role: user)
+- `/dashboard/admin-toko` - Dashboard untuk Admin Toko (role: admin_toko)
+- `/dashboard/super-admin` - Dashboard untuk Super Admin (role: super_admin)
+- `/logout` - Logout (POST)
+
+## Teknologi yang Digunakan
+
+- **Framework**: Laravel 12
+- **Database**: PostgreSQL
+- **Frontend**: Blade Templates + Tailwind CSS
+- **Authentication**: Laravel's built-in authentication
+
+## Role-Based Access Control
+
+Sistem menggunakan middleware `role` untuk membatasi akses berdasarkan role pengguna:
+
+```php
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('role:user');
+```
+
+## Pengembangan Selanjutnya
+
+- [ ] Implementasi CRUD untuk produk/jasa UMKM
+- [ ] Sistem pencarian dan filter
+- [ ] Upload gambar produk
+- [ ] Sistem rating dan review
+- [ ] Notifikasi
+- [ ] Dashboard analytics
+- [ ] Export data
 
 ## License
 

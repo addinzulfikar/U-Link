@@ -15,11 +15,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create Super Admin
+        User::create([
+            'name' => 'Super Admin',
+            'email' => 'superadmin@ulink.com',
+            'password' => bcrypt('password123'),
+            'role' => User::ROLE_SUPER_ADMIN,
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Create Admin Toko (UMKM) Sample
+        User::create([
+            'name' => 'Admin Toko Contoh',
+            'email' => 'admintoko@ulink.com',
+            'password' => bcrypt('password123'),
+            'role' => User::ROLE_ADMIN_TOKO,
+        ]);
+
+        // Create Regular User Sample
+        User::create([
+            'name' => 'User Contoh',
+            'email' => 'user@ulink.com',
+            'password' => bcrypt('password123'),
+            'role' => User::ROLE_USER,
         ]);
     }
 }
