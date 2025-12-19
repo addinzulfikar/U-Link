@@ -71,6 +71,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/umkm/manage', [UmkmController::class, 'manage'])->name('umkm.manage');
         Route::get('/umkm/edit', [UmkmController::class, 'edit'])->name('umkm.edit');
         Route::put('/umkm', [UmkmController::class, 'update'])->name('umkm.update');
+        Route::get('/umkm/download-template', [UmkmController::class, 'downloadTemplate'])->name('umkm.download-template');
 
         // Product Management
         Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
