@@ -7,10 +7,16 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\AdminController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    // Kalau sudah login, halaman neon tidak ditampilkan lagi
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
+
     try {
         $result = DB::select('select version()');
         $db_version = $result[0]->version;
@@ -18,8 +24,12 @@ Route::get('/', function () {
         $db_version = 'Error: Could not connect to the database. ' . $e->getMessage();
     }
 
-    return view('neon', ['db_version' => $db_version]);
-});
+    // Kurangi kemungkinan "Back" menampilkan neon dari cache
+    return response()
+        ->view('neon', ['db_version' => $db_version])
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        ->header('Pragma', 'no-cache');
+})->name('home');
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {

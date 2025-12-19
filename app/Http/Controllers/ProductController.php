@@ -5,12 +5,36 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Review;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    private function generateUniqueSlug(int $umkmId, string $name, ?int $ignoreProductId = null): string
+    {
+        $base = Str::slug($name);
+        $slug = $base;
+
+        $suffix = 2;
+        while (Product::query()
+            ->where('umkm_id', $umkmId)
+            ->when($ignoreProductId !== null, fn ($q) => $q->where('id', '!=', $ignoreProductId))
+            ->where('slug', $slug)
+            ->exists()) {
+            $slug = $base.'-'.$suffix;
+            $suffix++;
+
+            if ($suffix > 1000) {
+                $slug = $base.'-'.Str::lower(Str::random(6));
+                break;
+            }
+        }
+
+        return $slug;
+    }
+
     public function index(Request $request)
     {
         $query = Product::with(['umkm', 'category'])
@@ -111,14 +135,20 @@ class ProductController extends Controller
             'price' => 'required|integer|min:0',
             'stock' => 'nullable|integer|min:0',
             'category_id' => 'nullable|exists:categories,id',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         $validated['umkm_id'] = $umkm->id;
-        $validated['slug'] = Str::slug($validated['name']);
+        $validated['slug'] = $this->generateUniqueSlug($umkm->id, $validated['name']);
         $validated['is_active'] = $request->has('is_active');
 
-        $product = Product::create($validated);
+        try {
+            Product::create($validated);
+        } catch (QueryException $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan produk/jasa. Coba ubah nama (slug) atau periksa koneksi database.');
+        }
 
         return redirect()->route('umkm.manage')->with('success', 'Produk/Jasa berhasil ditambahkan.');
     }
@@ -147,7 +177,7 @@ class ProductController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $validated['slug'] = Str::slug($validated['name']);
+        $validated['slug'] = $this->generateUniqueSlug($umkm->id, $validated['name'], (int) $product->id);
         $validated['is_active'] = $request->has('is_active');
 
         $product->update($validated);
