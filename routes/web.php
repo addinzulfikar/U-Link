@@ -39,27 +39,29 @@ Route::get('/umkms/{umkmSlug}/products/{productSlug}', [ProductController::class
 
 // Dashboard Routes
 Route::middleware(['auth'])->group(function () {
+    // ✅ Entry point dashboard untuk semua role
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     // User Dashboard & Features
     Route::middleware('role:user')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.user');
         Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
         Route::post('/favorites/{umkmId}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
         Route::post('/products/{productId}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
         Route::put('/reviews/{id}', [ReviewController::class, 'update'])->name('reviews.update');
         Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
     });
-    
+
     // Admin Toko Dashboard & Features
     Route::middleware('role:admin_toko')->group(function () {
         Route::get('/dashboard/admin-toko', [DashboardController::class, 'adminToko'])->name('dashboard.admin-toko');
-        
+
         // UMKM Management
         Route::get('/umkm/create', [UmkmController::class, 'create'])->name('umkm.create');
         Route::post('/umkm', [UmkmController::class, 'store'])->name('umkm.store');
         Route::get('/umkm/manage', [UmkmController::class, 'manage'])->name('umkm.manage');
         Route::get('/umkm/edit', [UmkmController::class, 'edit'])->name('umkm.edit');
         Route::put('/umkm', [UmkmController::class, 'update'])->name('umkm.update');
-        
+
         // Product Management
         Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
         Route::post('/products', [ProductController::class, 'store'])->name('products.store');
@@ -67,7 +69,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
     });
-    
+
     // Super Admin Dashboard & Features
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/dashboard/super-admin', [DashboardController::class, 'superAdmin'])->name('dashboard.super-admin');

@@ -7,69 +7,146 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-body-tertiary">
-    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top shadow-sm" data-bs-theme="light">
+    <nav class="navbar navbar-expand bg-white border-bottom sticky-top shadow-sm" data-bs-theme="light">
         <div class="container">
             <a class="navbar-brand fw-bold fs-4" href="{{ url('/') }}">
                 <span class="text-primary">U</span>-LINK
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
 
-            <div class="collapse navbar-collapse" id="mainNavbar">
+            <div class="navbar-collapse">
+
+                {{-- LEFT: Navigasi dropdown --}}
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('umkms.index') }}">Jelajahi UMKM</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('products.index') }}">Produk & Jasa</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Navigasi
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('umkms.index') }}">🏪 Jelajahi UMKM</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('products.index') }}">🛍️ Produk & Jasa</a>
+                            </li>
+
+                            @auth
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    {{-- entry point dashboard untuk semua role --}}
+                                    <a class="dropdown-item" href="{{ route('dashboard') }}">📊 Dashboard</a>
+                                </li>
+
+                                @if(Auth::user()->isUser())
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('favorites.index') }}">❤️ Favorit Saya</a>
+                                    </li>
+                                @endif
+
+                                @if(Auth::user()->isAdminToko())
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('umkm.manage') }}">🏷️ Kelola UMKM</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('products.create') }}">➕ Tambah Produk/Jasa</a>
+                                    </li>
+                                @endif
+
+                                @if(Auth::user()->isSuperAdmin())
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('admin.index') }}">🛡️ Admin Dashboard</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('admin.users') }}">👤 Kelola Users</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('admin.umkms') }}">🏪 Kelola UMKM</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('admin.categories') }}">📁 Kelola Kategori</a>
+                                    </li>
+                                @endif
+                            @endauth
+                        </ul>
                     </li>
                 </ul>
 
-                <div class="d-flex align-items-lg-center gap-2 pt-3 pt-lg-0">
+                {{-- RIGHT: Akun dropdown --}}
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     @auth
                         @php
-                            $dashboardUrl = null;
-                            $dashboardLabel = 'Dashboard';
-                            if (Auth::user()->isSuperAdmin()) {
-                                $dashboardUrl = route('dashboard.super-admin');
-                                $dashboardLabel = 'Admin Panel';
-                            } elseif (Auth::user()->isAdminToko()) {
-                                $dashboardUrl = route('dashboard.admin-toko');
-                                $dashboardLabel = 'Kelola Toko';
-                            } elseif (Auth::user()->isUser()) {
-                                $dashboardUrl = route('dashboard.user');
+                            $user = Auth::user();
+
+                            $roleLabel = 'User';
+                            $roleBadge = 'bg-primary';
+
+                            if ($user->isAdminToko()) {
+                                $roleLabel = 'Admin Toko';
+                                $roleBadge = 'bg-warning text-dark';
+                            } elseif ($user->isSuperAdmin()) {
+                                $roleLabel = 'Super Admin';
+                                $roleBadge = 'bg-danger';
                             }
                         @endphp
 
-                        @if(Auth::user()->isUser())
-                            <a href="{{ route('favorites.index') }}" class="btn btn-sm btn-outline-secondary">
-                                <span>❤️</span> Favorit
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Akun
+                                <span class="ms-1">{{ $user->name }}</span>
+                                <span class="badge {{ $roleBadge }} ms-2">{{ $roleLabel }}</span>
                             </a>
-                        @endif
 
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ Auth::user()->name }}
-                            </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                @if ($dashboardUrl)
-                                    <li><a class="dropdown-item" href="{{ $dashboardUrl }}">{{ $dashboardLabel }}</a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('dashboard') }}">📊 Dashboard</a>
+                                </li>
+
+                                @if($user->isUser())
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('favorites.index') }}">❤️ Favorit Saya</a>
+                                    </li>
                                 @endif
+
+                                @if($user->isAdminToko())
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ route('umkm.manage') }}">🏷️ Kelola UMKM</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('products.create') }}">➕ Tambah Produk/Jasa</a></li>
+                                @endif
+
+                                @if($user->isSuperAdmin())
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.index') }}">🛡️ Admin Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.users') }}">👤 Kelola Users</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.umkms') }}">🏪 Kelola UMKM</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.categories') }}">📁 Kelola Kategori</a></li>
+                                @endif
+
+                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}" class="d-inline">
                                         @csrf
-                                        <button type="submit" class="dropdown-item text-danger">Logout</button>
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            Logout
+                                        </button>
                                     </form>
                                 </li>
                             </ul>
-                        </div>
+                        </li>
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-sm btn-outline-secondary">Login</a>
-                        <a href="{{ route('register') }}" class="btn btn-sm btn-primary">Daftar</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                Akun
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ route('login') }}">Login</a></li>
+                                <li><a class="dropdown-item" href="{{ route('register') }}">Daftar</a></li>
+                            </ul>
+                        </li>
                     @endauth
-                </div>
+                </ul>
             </div>
         </div>
     </nav>
@@ -117,7 +194,7 @@
                             <li><a href="{{ route('login') }}" class="text-decoration-none text-secondary">Login</a></li>
                             <li><a href="{{ route('register') }}" class="text-decoration-none text-secondary">Daftar</a></li>
                         @else
-                            <li><a href="{{ $dashboardUrl ?? '#' }}" class="text-decoration-none text-secondary">Dashboard</a></li>
+                            <li><a href="{{ route('dashboard') }}" class="text-decoration-none text-secondary">Dashboard</a></li>
                         @endguest
                     </ul>
                 </div>

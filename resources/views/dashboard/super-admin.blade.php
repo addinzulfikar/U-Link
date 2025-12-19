@@ -4,9 +4,13 @@
 
 @section('content')
 <div class="container">
-    <div class="mb-4">
-        <h1 class="h3 fw-bold mb-1">Dashboard Super Admin</h1>
-        <div class="text-secondary">Selamat datang, <span class="fw-semibold">{{ Auth::user()->name }}</span></div>
+    <div class="mb-4 d-flex justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Dashboard Super Admin</h1>
+            <div class="text-secondary">Selamat datang, <span class="fw-semibold">{{ Auth::user()->name }}</span></div>
+        </div>
+
+        @include('partials.logout-button')
     </div>
 
     <!-- Platform Stats -->
