@@ -131,6 +131,10 @@ class UmkmController extends Controller
             return redirect()->route('umkm.create')->with('error', 'Anda belum memiliki UMKM.');
         }
 
+        if (! $umkm->isApproved()) {
+            return redirect()->route('umkm.manage')->with('error', 'UMKM harus disetujui terlebih dahulu untuk mengunduh template.');
+        }
+
         $exporter = new UmkmTemplateExport($umkm);
 
         return $exporter->toResponse();

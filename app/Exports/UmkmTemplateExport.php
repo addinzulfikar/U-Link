@@ -142,7 +142,9 @@ class UmkmTemplateExport
         $spreadsheet = $this->generate();
         $writer = new Xlsx($spreadsheet);
 
-        $filename = 'Template_Produk_'.str_replace(' ', '_', $this->umkm->name).'_'.date('Y-m-d').'.xlsx';
+        // Sanitize filename to prevent injection attacks
+        $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $this->umkm->name);
+        $filename = 'Template_Produk_'.$safeName.'_'.date('Y-m-d').'.xlsx';
 
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');

@@ -45,6 +45,23 @@ class UmkmTemplateDownloadTest extends TestCase
         $response->assertSessionHas('error', 'Anda belum memiliki UMKM.');
     }
 
+    public function test_admin_toko_with_pending_umkm_cannot_download_template(): void
+    {
+        $user = User::factory()->create([
+            'role' => User::ROLE_ADMIN_TOKO,
+        ]);
+
+        $umkm = Umkm::factory()->create([
+            'owner_user_id' => $user->id,
+            'status' => Umkm::STATUS_PENDING,
+        ]);
+
+        $response = $this->actingAs($user)->get('/umkm/download-template');
+
+        $response->assertRedirect('/umkm/manage');
+        $response->assertSessionHas('error', 'UMKM harus disetujui terlebih dahulu untuk mengunduh template.');
+    }
+
     public function test_regular_user_cannot_download_template(): void
     {
         $user = User::factory()->create([
