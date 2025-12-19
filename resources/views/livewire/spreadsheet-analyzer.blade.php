@@ -230,7 +230,15 @@
                                                                         <tr>
                                                                             <td><strong>{{ $col['nama_kolom'] ?? '-' }}</strong></td>
                                                                             <td>
-                                                                                <span class="badge bg-{{ $col['tipe_data'] === 'mata_uang' ? 'success' : ($col['tipe_data'] === 'tanggal' ? 'info' : ($col['tipe_data'] === 'angka' ? 'warning' : 'secondary')) }}">
+                                                                                @php
+                                                                                    $badgeColors = [
+                                                                                        'mata_uang' => 'success',
+                                                                                        'tanggal' => 'info',
+                                                                                        'angka' => 'warning',
+                                                                                    ];
+                                                                                    $badgeColor = $badgeColors[$col['tipe_data']] ?? 'secondary';
+                                                                                @endphp
+                                                                                <span class="badge bg-{{ $badgeColor }}">
                                                                                     {{ ucfirst(str_replace('_', ' ', $col['tipe_data'] ?? 'teks')) }}
                                                                                 </span>
                                                                             </td>

@@ -7,12 +7,33 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class SpreadsheetAnalyzerService
 {
+    /**
+     * Maximum number of rows to sample for analysis
+     */
+    protected const SAMPLE_ROWS_LIMIT = 100;
+
+    /**
+     * Maximum number of rows to check for duplicates
+     */
+    protected const DUPLICATE_CHECK_LIMIT = 500;
+
     protected Spreadsheet $spreadsheet;
 
     protected array $analysisResult = [];
+
+    /**
+     * Get cell value by column and row (helper for PhpSpreadsheet 5.x compatibility)
+     */
+    protected function getCellValue(Worksheet $sheet, int $col, int $row): mixed
+    {
+        $cellAddress = Coordinate::stringFromColumnIndex($col).$row;
+
+        return $sheet->getCell($cellAddress)->getValue();
+    }
 
     /**
      * Analyze the uploaded spreadsheet file
@@ -70,7 +91,7 @@ class SpreadsheetAnalyzerService
             // Get headers (first row)
             $headers = [];
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $cellValue = $sheet->getCellByColumnAndRow($col, 1)->getValue();
+                $cellValue = $this->getCellValue($sheet, $col, 1);
                 $headers[] = $cellValue;
             }
 
@@ -97,10 +118,10 @@ class SpreadsheetAnalyzerService
     /**
      * Analyze columns with data type detection
      */
-    protected function analyzeColumns($sheet, array $headers, int $highestRow, int $highestColumnIndex): array
+    protected function analyzeColumns(Worksheet $sheet, array $headers, int $highestRow, int $highestColumnIndex): array
     {
         $columns = [];
-        $sampleRows = min($highestRow, 100); // Sample first 100 rows for analysis
+        $sampleRows = min($highestRow, self::SAMPLE_ROWS_LIMIT);
 
         for ($col = 1; $col <= $highestColumnIndex; $col++) {
             $headerName = $headers[$col - 1] ?? "Kolom $col";
@@ -108,8 +129,7 @@ class SpreadsheetAnalyzerService
             $emptyCount = 0;
 
             for ($row = 2; $row <= $sampleRows; $row++) {
-                $cell = $sheet->getCellByColumnAndRow($col, $row);
-                $value = $cell->getValue();
+                $value = $this->getCellValue($sheet, $col, $row);
 
                 if ($value === null || $value === '') {
                     $emptyCount++;
@@ -376,7 +396,7 @@ class SpreadsheetAnalyzerService
 
             $headers = [];
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $cellValue = $sheet->getCellByColumnAndRow($col, 1)->getValue();
+                $cellValue = $this->getCellValue($sheet, $col, 1);
                 if ($cellValue) {
                     $headers[] = strtolower($cellValue);
                 }
@@ -427,28 +447,23 @@ class SpreadsheetAnalyzerService
             // Get headers
             $headers = [];
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $headers[$col] = $sheet->getCellByColumnAndRow($col, 1)->getValue();
+                $headers[$col] = $this->getCellValue($sheet, $col, 1);
             }
 
             // Check for empty columns
             $emptyColumns = [];
-            $inconsistentDateFormats = [];
-            $textNumberMixed = [];
             $negativeValues = [];
             $zeroValues = [];
             $duplicates = [];
 
             $rowHashes = [];
-            $sampleRows = min($highestRow, 500);
+            $sampleRows = min($highestRow, self::DUPLICATE_CHECK_LIMIT);
 
             for ($row = 2; $row <= $sampleRows; $row++) {
-                $rowData = [];
                 $rowHash = '';
 
                 for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                    $cell = $sheet->getCellByColumnAndRow($col, $row);
-                    $value = $cell->getValue();
-                    $rowData[$col] = $value;
+                    $value = $this->getCellValue($sheet, $col, $row);
                     $rowHash .= $value.'|';
 
                     $headerName = $headers[$col] ?? "Kolom $col";
@@ -491,7 +506,7 @@ class SpreadsheetAnalyzerService
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
                 $emptyCount = 0;
                 for ($row = 2; $row <= $sampleRows; $row++) {
-                    $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
+                    $value = $this->getCellValue($sheet, $col, $row);
                     if ($value === null || $value === '') {
                         $emptyCount++;
                     }
@@ -572,7 +587,7 @@ class SpreadsheetAnalyzerService
             // Get headers
             $headers = [];
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $headers[$col] = $sheet->getCellByColumnAndRow($col, 1)->getValue();
+                $headers[$col] = $this->getCellValue($sheet, $col, 1);
             }
 
             $sheetInsights = [];
@@ -605,7 +620,7 @@ class SpreadsheetAnalyzerService
             // Collect data
             for ($row = 2; $row <= $highestRow; $row++) {
                 if ($dateColumn) {
-                    $dateValue = $sheet->getCellByColumnAndRow($dateColumn, $row)->getValue();
+                    $dateValue = $this->getCellValue($sheet, $dateColumn, $row);
                     if (is_numeric($dateValue) && $dateValue > 0) {
                         try {
                             $dates[] = ExcelDate::excelToDateTimeObject($dateValue);
@@ -622,14 +637,14 @@ class SpreadsheetAnalyzerService
                 }
 
                 if ($salesColumn) {
-                    $value = $sheet->getCellByColumnAndRow($salesColumn, $row)->getValue();
+                    $value = $this->getCellValue($sheet, $salesColumn, $row);
                     if (is_numeric($value)) {
                         $salesTotal += (float) $value;
                     }
                 }
 
                 if ($productColumn) {
-                    $productName = $sheet->getCellByColumnAndRow($productColumn, $row)->getValue();
+                    $productName = $this->getCellValue($sheet, $productColumn, $row);
                     if ($productName) {
                         $productCounts[$productName] = ($productCounts[$productName] ?? 0) + 1;
                     }
@@ -709,7 +724,7 @@ class SpreadsheetAnalyzerService
             $unclearHeaders = 0;
 
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $header = $sheet->getCellByColumnAndRow($col, 1)->getValue();
+                $header = $this->getCellValue($sheet, $col, 1);
                 $headers[] = $header;
 
                 if ($header === null || $header === '') {
