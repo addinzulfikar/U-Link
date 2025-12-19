@@ -74,4 +74,28 @@ class User extends Authenticatable
     {
         return $this->role === self::ROLE_SUPER_ADMIN;
     }
+
+    /**
+     * Get the UMKM owned by this user
+     */
+    public function umkm()
+    {
+        return $this->hasOne(Umkm::class, 'owner_user_id');
+    }
+
+    /**
+     * Get the reviews written by this user
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the favorites of this user
+     */
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
 }
