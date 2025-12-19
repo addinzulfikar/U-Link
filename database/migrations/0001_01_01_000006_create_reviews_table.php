@@ -1,31 +1,25 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::unprepared(<<<'SQL'
-            CREATE TABLE reviews (
-                id BIGSERIAL PRIMARY KEY,
-                product_id BIGINT NOT NULL,
-                user_id BIGINT NOT NULL,
-                rating INTEGER NOT NULL,
-                comment TEXT NULL,
-                created_at TIMESTAMP NULL,
-                updated_at TIMESTAMP NULL,
-                CONSTRAINT reviews_product_id_foreign FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-                CONSTRAINT reviews_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                CONSTRAINT reviews_rating_check CHECK (rating >= 1 AND rating <= 5),
-                CONSTRAINT reviews_user_product_unique UNIQUE (user_id, product_id)
-            );
+        Schema::create('reviews', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->integer('rating');
+            $table->text('comment')->nullable();
+            $table->timestamps();
 
-            CREATE INDEX reviews_product_id_index ON reviews(product_id);
-            CREATE INDEX reviews_user_id_index ON reviews(user_id);
-        SQL);
+            $table->unique(['user_id', 'product_id'], 'reviews_user_product_unique');
+            $table->index('product_id', 'reviews_product_id_index');
+            $table->index('user_id', 'reviews_user_id_index');
+        });
     }
 
     public function down(): void

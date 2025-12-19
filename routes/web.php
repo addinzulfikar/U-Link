@@ -1,12 +1,12 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\UmkmController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\UmkmController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +21,7 @@ Route::get('/', function () {
         $result = DB::select('select version()');
         $db_version = $result[0]->version;
     } catch (\Exception $e) {
-        $db_version = 'Error: Could not connect to the database. ' . $e->getMessage();
+        $db_version = 'Error: Could not connect to the database. '.$e->getMessage();
     }
 
     // Kurangi kemungkinan "Back" menampilkan neon dari cache
@@ -78,6 +78,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+        // Spreadsheet Analyzer
+        Route::get('/spreadsheet/analyzer', [DashboardController::class, 'spreadsheetAnalyzer'])->name('spreadsheet.analyzer');
     });
 
     // Super Admin Dashboard & Features
@@ -93,4 +96,3 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/admin/categories/{id}', [AdminController::class, 'deleteCategory'])->name('admin.categories.destroy');
     });
 });
-

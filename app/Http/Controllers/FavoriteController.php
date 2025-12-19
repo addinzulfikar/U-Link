@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Favorite;
 use App\Models\Umkm;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FavoriteController extends Controller
@@ -12,6 +11,7 @@ class FavoriteController extends Controller
     public function index()
     {
         $favorites = Auth::user()->favorites()->with('umkm')->latest()->paginate(12);
+
         return view('favorites.index', compact('favorites'));
     }
 

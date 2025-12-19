@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Umkm;
 use App\Models\Product;
+use App\Models\Umkm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -22,7 +22,7 @@ class UmkmController extends Controller
 
     public function show($slug)
     {
-        $umkm = Umkm::with(['owner', 'products' => function($query) {
+        $umkm = Umkm::with(['owner', 'products' => function ($query) {
             $query->where('is_active', true);
         }])->where('slug', $slug)->firstOrFail();
 
@@ -73,7 +73,7 @@ class UmkmController extends Controller
     {
         $umkm = Auth::user()->umkm;
 
-        if (!$umkm) {
+        if (! $umkm) {
             return redirect()->route('umkm.create');
         }
 
@@ -91,7 +91,7 @@ class UmkmController extends Controller
     {
         $umkm = Auth::user()->umkm;
 
-        if (!$umkm) {
+        if (! $umkm) {
             return redirect()->route('umkm.create');
         }
 
@@ -102,7 +102,7 @@ class UmkmController extends Controller
     {
         $umkm = Auth::user()->umkm;
 
-        if (!$umkm) {
+        if (! $umkm) {
             return redirect()->route('umkm.create');
         }
 

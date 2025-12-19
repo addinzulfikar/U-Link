@@ -19,6 +19,9 @@
             <span class="admin-nav-icon">➕</span> Tambah Produk/Jasa
         </a>
     @endif
+    <a href="{{ route('spreadsheet.analyzer') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">📈</span> Analisis Spreadsheet
+    </a>
     
     <div class="admin-nav-section">Lainnya</div>
     <a href="{{ route('umkms.index') }}" class="admin-nav-item">

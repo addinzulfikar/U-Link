@@ -1,39 +1,33 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::unprepared(<<<'SQL'
-            ALTER TABLE products 
-            ADD COLUMN IF NOT EXISTS category_id BIGINT NULL,
-            ADD COLUMN IF NOT EXISTS image VARCHAR(500) NULL;
-
-            ALTER TABLE products
-            DROP CONSTRAINT IF EXISTS products_category_id_foreign;
-
-            ALTER TABLE products
-            ADD CONSTRAINT products_category_id_foreign 
-            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
-
-            CREATE INDEX IF NOT EXISTS products_category_id_index ON products(category_id);
-        SQL);
+        Schema::table('products', function (Blueprint $table) {
+            if (! Schema::hasColumn('products', 'category_id')) {
+                $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
+            }
+            if (! Schema::hasColumn('products', 'image')) {
+                $table->string('image', 500)->nullable();
+            }
+        });
     }
 
     public function down(): void
     {
-        DB::unprepared(<<<'SQL'
-            ALTER TABLE products 
-            DROP CONSTRAINT IF EXISTS products_category_id_foreign;
-            
-            DROP INDEX IF EXISTS products_category_id_index;
-            
-            ALTER TABLE products 
-            DROP COLUMN IF EXISTS category_id,
-            DROP COLUMN IF EXISTS image;
-        SQL);
+        Schema::table('products', function (Blueprint $table) {
+            if (Schema::hasColumn('products', 'category_id')) {
+                $table->dropForeign(['category_id']);
+                $table->dropColumn('category_id');
+            }
+            if (Schema::hasColumn('products', 'image')) {
+                $table->dropColumn('image');
+            }
+        });
     }
 };

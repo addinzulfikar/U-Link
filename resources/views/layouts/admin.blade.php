@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Dashboard - U-LINK')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
     <style>
         .admin-wrapper {
             display: flex;
@@ -226,5 +227,6 @@
             </div>
         </main>
     </div>
+    @livewireScripts
 </body>
 </html>

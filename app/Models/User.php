@@ -13,7 +13,9 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     const ROLE_USER = 'user';
+
     const ROLE_ADMIN_TOKO = 'admin_toko';
+
     const ROLE_SUPER_ADMIN = 'super_admin';
 
     /**
