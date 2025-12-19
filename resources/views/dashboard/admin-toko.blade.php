@@ -1,16 +1,38 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Dashboard Admin Toko - U-LINK')
 
-@section('content')
-<div class="container">
-    <div class="mb-4 d-flex justify-content-between align-items-start gap-3">
-        <div>
-            <h1 class="h3 fw-bold mb-1">Dashboard Admin Toko</h1>
-            <div class="text-secondary">Selamat datang, <span class="fw-semibold">{{ Auth::user()->name }}</span></div>
-        </div>
+@section('page-title', 'Dashboard Admin Toko')
 
-        @include('partials.logout-button')
+@section('sidebar')
+    <div class="admin-nav-section">Dashboard</div>
+    <a href="{{ route('dashboard.admin-toko') }}" class="admin-nav-item active">
+        <span class="admin-nav-icon">📊</span> Overview
+    </a>
+    
+    <div class="admin-nav-section">UMKM Saya</div>
+    <a href="{{ route('umkm.manage') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">🏪</span> Kelola UMKM
+    </a>
+    @if(isset($umkm) && $umkm && $umkm->isApproved())
+        <a href="{{ route('products.create') }}" class="admin-nav-item">
+            <span class="admin-nav-icon">➕</span> Tambah Produk/Jasa
+        </a>
+    @endif
+    
+    <div class="admin-nav-section">Lainnya</div>
+    <a href="{{ route('umkms.index') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">🛍️</span> Jelajahi UMKM
+    </a>
+    <a href="{{ route('products.index') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">📦</span> Produk & Jasa
+    </a>
+@endsection
+
+@section('content')
+<div>
+    <div class="mb-4">
+        <p class="text-secondary mb-0">Selamat datang, <span class="fw-semibold">{{ Auth::user()->name }}</span></p>
     </div>
 
     @if(!$umkm)

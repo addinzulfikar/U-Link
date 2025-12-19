@@ -61,17 +61,23 @@
 
                         <div class="mb-3">
                             <label for="category_id" class="form-label">Kategori</label>
-                            <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id">
-                                <option value="">Pilih Kategori</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('category_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @if($categories->count() > 0)
+                                <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id">
+                                    <option value="">Pilih Kategori (Opsional)</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('category_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            @else
+                                <div class="alert alert-warning mb-0">
+                                    <strong>Belum ada kategori tersedia.</strong> Silakan hubungi administrator untuk menambahkan kategori, atau Anda dapat melanjutkan tanpa kategori.
+                                </div>
+                            @endif
                         </div>
 
                         <div class="mb-3">

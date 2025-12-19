@@ -1,13 +1,37 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Kelola Kategori - U-LINK')
 
+@section('page-title', 'Kelola Kategori')
+
+@section('sidebar')
+    <div class="admin-nav-section">Dashboard</div>
+    <a href="{{ route('dashboard.super-admin') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">📊</span> Overview
+    </a>
+    
+    <div class="admin-nav-section">Manajemen</div>
+    <a href="{{ route('admin.users') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">👥</span> Kelola Users
+    </a>
+    <a href="{{ route('admin.umkms') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">🏪</span> Kelola UMKM
+    </a>
+    <a href="{{ route('admin.categories') }}" class="admin-nav-item active">
+        <span class="admin-nav-icon">📁</span> Kelola Kategori
+    </a>
+    
+    <div class="admin-nav-section">Lainnya</div>
+    <a href="{{ route('umkms.index') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">🛍️</span> Lihat UMKM
+    </a>
+    <a href="{{ route('products.index') }}" class="admin-nav-item">
+        <span class="admin-nav-icon">📦</span> Lihat Produk
+    </a>
+@endsection
+
 @section('content')
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 fw-bold mb-0">Kelola Kategori</h1>
-        <a href="{{ route('dashboard.super-admin') }}" class="btn btn-outline-secondary">Kembali</a>
-    </div>
+<div>
 
     <!-- Add Category Form -->
     <div class="card border-0 shadow-sm mb-4">
