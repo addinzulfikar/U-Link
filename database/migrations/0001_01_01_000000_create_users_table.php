@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,38 +11,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Use raw SQL to avoid transaction issues with PostgreSQL
-        DB::unprepared('
-            CREATE TABLE users (
-                id BIGSERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                email VARCHAR(255) NOT NULL UNIQUE,
-                email_verified_at TIMESTAMP NULL,
-                password VARCHAR(255) NOT NULL,
-                role VARCHAR(50) NOT NULL DEFAULT \'user\' CHECK (role IN (\'user\', \'admin_toko\', \'super_admin\')),
-                remember_token VARCHAR(100) NULL,
-                created_at TIMESTAMP NULL,
-                updated_at TIMESTAMP NULL
-            );
-            
-            CREATE TABLE password_reset_tokens (
-                email VARCHAR(255) PRIMARY KEY,
-                token VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP NULL
-            );
-            
-            CREATE TABLE sessions (
-                id VARCHAR(255) PRIMARY KEY,
-                user_id BIGINT NULL,
-                ip_address VARCHAR(45) NULL,
-                user_agent TEXT NULL,
-                payload TEXT NOT NULL,
-                last_activity INTEGER NOT NULL
-            );
-            
-            CREATE INDEX sessions_user_id_index ON sessions(user_id);
-            CREATE INDEX sessions_last_activity_index ON sessions(last_activity);
-        ');
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 255);
+            $table->string('email', 255)->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password', 255);
+            $table->string('role', 50)->default('user');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email', 255)->primary();
+            $table->string('token', 255);
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id', 255)->primary();
+            $table->bigInteger('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->text('payload');
+            $table->integer('last_activity')->index();
+        });
     }
 
     /**
@@ -51,8 +43,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
 };

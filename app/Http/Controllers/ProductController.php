@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\Category;
-use App\Models\Review;
+use App\Models\Product;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,7 +37,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::with(['umkm', 'category'])
-            ->whereHas('umkm', function($q) {
+            ->whereHas('umkm', function ($q) {
                 $q->where('status', 'approved');
             })
             ->where('is_active', true);
@@ -56,9 +55,9 @@ class ProductController extends Controller
         // Search
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'ILIKE', "%{$search}%")
-                  ->orWhere('description', 'ILIKE', "%{$search}%");
+                    ->orWhere('description', 'ILIKE', "%{$search}%");
             });
         }
 
@@ -87,7 +86,7 @@ class ProductController extends Controller
     public function show($umkmSlug, $productSlug)
     {
         $product = Product::with(['umkm', 'category', 'reviews.user'])
-            ->whereHas('umkm', function($q) use ($umkmSlug) {
+            ->whereHas('umkm', function ($q) use ($umkmSlug) {
                 $q->where('slug', $umkmSlug);
             })
             ->where('slug', $productSlug)
@@ -108,15 +107,16 @@ class ProductController extends Controller
     {
         $umkm = Auth::user()->umkm;
 
-        if (!$umkm) {
+        if (! $umkm) {
             return redirect()->route('umkm.create')->with('error', 'Anda harus membuat UMKM terlebih dahulu.');
         }
 
-        if (!$umkm->isApproved()) {
+        if (! $umkm->isApproved()) {
             return redirect()->route('umkm.manage')->with('error', 'UMKM Anda harus disetujui terlebih dahulu.');
         }
 
         $categories = Category::all();
+
         return view('products.create', compact('categories'));
     }
 
@@ -124,7 +124,7 @@ class ProductController extends Controller
     {
         $umkm = Auth::user()->umkm;
 
-        if (!$umkm || !$umkm->isApproved()) {
+        if (! $umkm || ! $umkm->isApproved()) {
             return redirect()->route('umkm.manage')->with('error', 'UMKM Anda harus disetujui terlebih dahulu.');
         }
 

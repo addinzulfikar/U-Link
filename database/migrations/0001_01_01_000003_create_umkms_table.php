@@ -1,34 +1,28 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::unprepared(<<<'SQL'
-            CREATE TABLE umkms (
-                id BIGSERIAL PRIMARY KEY,
-                owner_user_id BIGINT NOT NULL,
-                name VARCHAR(255) NOT NULL,
-                slug VARCHAR(255) NOT NULL,
-                description TEXT NULL,
-                phone VARCHAR(50) NULL,
-                address VARCHAR(255) NULL,
-                city VARCHAR(100) NULL,
-                province VARCHAR(100) NULL,
-                status VARCHAR(50) NOT NULL DEFAULT 'pending',
-                created_at TIMESTAMP NULL,
-                updated_at TIMESTAMP NULL,
-                CONSTRAINT umkms_slug_unique UNIQUE (slug),
-                CONSTRAINT umkms_owner_user_id_foreign FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
-                CONSTRAINT umkms_status_check CHECK (status IN ('pending', 'approved', 'rejected'))
-            );
+        Schema::create('umkms', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('owner_user_id')->constrained('users')->onDelete('cascade');
+            $table->string('name', 255);
+            $table->string('slug', 255)->unique();
+            $table->text('description')->nullable();
+            $table->string('phone', 50)->nullable();
+            $table->string('address', 255)->nullable();
+            $table->string('city', 100)->nullable();
+            $table->string('province', 100)->nullable();
+            $table->string('status', 50)->default('pending');
+            $table->timestamps();
 
-            CREATE INDEX umkms_owner_user_id_status_index ON umkms(owner_user_id, status);
-        SQL);
+            $table->index(['owner_user_id', 'status'], 'umkms_owner_user_id_status_index');
+        });
     }
 
     public function down(): void

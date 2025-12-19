@@ -18,7 +18,7 @@ class CheckRole
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -26,7 +26,7 @@ class CheckRole
         $userRole = strtolower((string) $user->role);
         $allowedRoles = array_map('strtolower', $roles);
 
-        if (!in_array($userRole, $allowedRoles, true)) {
+        if (! in_array($userRole, $allowedRoles, true)) {
             // UX: kalau user klik link (GET), arahkan ke dashboard yg benar
             if ($request->isMethod('get')) {
                 $target = match ($user->role) {

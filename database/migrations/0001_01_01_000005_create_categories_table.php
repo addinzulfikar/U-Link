@@ -1,27 +1,23 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::unprepared(<<<'SQL'
-            CREATE TABLE categories (
-                id BIGSERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                slug VARCHAR(255) NOT NULL,
-                description TEXT NULL,
-                icon VARCHAR(255) NULL,
-                created_at TIMESTAMP NULL,
-                updated_at TIMESTAMP NULL,
-                CONSTRAINT categories_slug_unique UNIQUE (slug)
-            );
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 255);
+            $table->string('slug', 255)->unique();
+            $table->text('description')->nullable();
+            $table->string('icon', 255)->nullable();
+            $table->timestamps();
 
-            CREATE INDEX categories_slug_index ON categories(slug);
-        SQL);
+            $table->index('slug', 'categories_slug_index');
+        });
     }
 
     public function down(): void

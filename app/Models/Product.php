@@ -13,6 +13,7 @@ class Product extends Model
     use HasFactory;
 
     const TYPE_PRODUCT = 'product';
+
     const TYPE_SERVICE = 'service';
 
     protected $fillable = [
@@ -79,7 +80,7 @@ class Product extends Model
 
     public function getFormattedPriceAttribute(): string
     {
-        return 'Rp ' . number_format($this->price, 0, ',', '.');
+        return 'Rp '.number_format($this->price, 0, ',', '.');
     }
 
     public function scopeActive($query)

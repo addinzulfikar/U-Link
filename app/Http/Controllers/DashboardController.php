@@ -62,7 +62,7 @@ class DashboardController extends Controller
             $stats['total_products'] = $umkm->products()->where('type', Product::TYPE_PRODUCT)->count();
             $stats['total_services'] = $umkm->products()->where('type', Product::TYPE_SERVICE)->count();
             $stats['total_favorites'] = $umkm->favorites()->count();
-            
+
             $recentProducts = $umkm->products()->latest()->take(5)->get();
         }
 
@@ -88,5 +88,15 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboard.super-admin', compact('stats', 'pendingUmkms'));
+    }
+
+    /**
+     * Show spreadsheet analyzer page for admin toko
+     */
+    public function spreadsheetAnalyzer()
+    {
+        $umkm = Auth::user()->umkm;
+
+        return view('dashboard.spreadsheet-analyzer', compact('umkm'));
     }
 }

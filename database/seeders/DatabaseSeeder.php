@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\Category;
-use App\Models\Umkm;
 use App\Models\Product;
+use App\Models\Umkm;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -72,7 +72,7 @@ class DatabaseSeeder extends Seeder
 
         // Create Sample Products
         $makananCategory = Category::where('name', 'Makanan & Minuman')->first();
-        
+
         Product::create([
             'umkm_id' => $umkm->id,
             'type' => Product::TYPE_PRODUCT,

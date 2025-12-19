@@ -50,6 +50,9 @@
                                     <li>
                                         <a class="dropdown-item" href="{{ route('products.create') }}">➕ Tambah Produk/Jasa</a>
                                     </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('spreadsheet.analyzer') }}">📈 Analisis Spreadsheet</a>
+                                    </li>
                                 @endif
 
                                 @if(Auth::user()->isSuperAdmin())
@@ -113,6 +116,7 @@
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="{{ route('umkm.manage') }}">🏷️ Kelola UMKM</a></li>
                                     <li><a class="dropdown-item" href="{{ route('products.create') }}">➕ Tambah Produk/Jasa</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('spreadsheet.analyzer') }}">📈 Analisis Spreadsheet</a></li>
                                 @endif
 
                                 @if($user->isSuperAdmin())
