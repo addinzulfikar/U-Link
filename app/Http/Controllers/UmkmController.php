@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UmkmTemplateExport;
 use App\Models\Product;
 use App\Models\Umkm;
 use Illuminate\Http\Request;
@@ -120,5 +121,22 @@ class UmkmController extends Controller
         $umkm->update($validated);
 
         return redirect()->route('umkm.manage')->with('success', 'UMKM berhasil diperbarui.');
+    }
+
+    public function downloadTemplate()
+    {
+        $umkm = Auth::user()->umkm;
+
+        if (! $umkm) {
+            return redirect()->route('umkm.create')->with('error', 'Anda belum memiliki UMKM.');
+        }
+
+        if (! $umkm->isApproved()) {
+            return redirect()->route('umkm.manage')->with('error', 'UMKM harus disetujui terlebih dahulu untuk mengunduh template.');
+        }
+
+        $exporter = new UmkmTemplateExport($umkm);
+
+        return $exporter->toResponse();
     }
 }

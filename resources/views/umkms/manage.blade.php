@@ -71,7 +71,12 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0">Produk & Jasa</h5>
                 @if($umkm->isApproved())
-                    <a href="{{ route('products.create') }}" class="btn btn-primary">+ Tambah Produk/Jasa</a>
+                    <div>
+                        <a href="{{ route('umkm.download-template') }}" class="btn btn-success me-2">
+                            <i class="bi bi-download"></i> Download Template
+                        </a>
+                        <a href="{{ route('products.create') }}" class="btn btn-primary">+ Tambah Produk/Jasa</a>
+                    </div>
                 @endif
             </div>
         </div>
