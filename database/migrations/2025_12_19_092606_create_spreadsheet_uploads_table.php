@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
+     * PostgreSQL in this environment is intermittently failing DDL inside
+     * transactions (SQLSTATE[25P02]). Run this migration outside a transaction.
+     */
+    public $withinTransaction = false;
+
+    /**
      * Run the migrations.
      */
     public function up(): void
