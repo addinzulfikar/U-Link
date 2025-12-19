@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Super Admin - U-LINK')
+@section('title', 'Admin Dashboard - U-LINK')
 
-@section('page-title', 'Dashboard Super Admin')
+@section('page-title', 'Admin Dashboard')
 
 @section('sidebar')
     <div class="admin-nav-section">Dashboard</div>
-    <a href="{{ route('dashboard.super-admin') }}" class="admin-nav-item active">
+    <a href="{{ route('admin.index') }}" class="admin-nav-item active">
         <span class="admin-nav-icon">📊</span> Overview
     </a>
     
@@ -39,34 +39,33 @@
     <!-- Platform Stats -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
                     <div class="text-secondary small mb-1">Total Users</div>
                     <div class="h3 fw-bold mb-0">{{ $stats['total_users'] }}</div>
-                    <a href="{{ route('admin.users') }}" class="stretched-link text-decoration-none small">Kelola →</a>
+                    <a href="{{ route('admin.users') }}" class="text-decoration-none small">Kelola →</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <div class="text-secondary small mb-1">UMKM Aktif</div>
+                    <div class="text-secondary small mb-1">Admin Toko</div>
+                    <div class="h3 fw-bold mb-0">{{ $stats['total_admin_toko'] }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-secondary small mb-1">Total UMKM</div>
                     <div class="h3 fw-bold mb-0">{{ $stats['total_umkms'] }}</div>
-                    <a href="{{ route('admin.umkms') }}" class="stretched-link text-decoration-none small">Kelola →</a>
+                    <a href="{{ route('admin.umkms') }}" class="text-decoration-none small">Kelola →</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="text-secondary small mb-1">Pending UMKM</div>
-                    <div class="h3 fw-bold mb-0">{{ $stats['pending_umkms'] }}</div>
-                    <a href="{{ route('admin.umkms', ['status' => 'pending']) }}" class="stretched-link text-decoration-none small">Review →</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
                     <div class="text-secondary small mb-1">Total Produk</div>
                     <div class="h3 fw-bold mb-0">{{ $stats['total_products'] }}</div>
@@ -80,7 +79,7 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-0 p-4">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0">UMKM Menunggu Persetujuan</h5>
+                    <h5 class="fw-bold mb-0">UMKM Menunggu Persetujuan ({{ $stats['pending_umkms'] }})</h5>
                     <a href="{{ route('admin.umkms', ['status' => 'pending']) }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                 </div>
             </div>
@@ -124,37 +123,38 @@
         </div>
     @endif
 
-    <!-- Quick Actions -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-            <h5 class="fw-semibold mb-3">Manajemen</h5>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <a href="{{ route('admin.users') }}" class="card border text-decoration-none h-100 hover-shadow">
-                        <div class="card-body">
-                            <div class="h2 mb-2">👥</div>
-                            <h6 class="card-title">Kelola Users</h6>
-                            <p class="card-text small text-secondary mb-0">Kelola semua pengguna platform</p>
-                        </div>
-                    </a>
+    <!-- Status Overview -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="text-secondary mb-3">Status UMKM</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small">Pending</span>
+                        <span class="fw-bold">{{ $stats['pending_umkms'] }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="small">Disetujui</span>
+                        <span class="fw-bold text-success">{{ $stats['approved_umkms'] }}</span>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <a href="{{ route('admin.umkms') }}" class="card border text-decoration-none h-100 hover-shadow">
-                        <div class="card-body">
-                            <div class="h2 mb-2">🏪</div>
-                            <h6 class="card-title">Kelola UMKM</h6>
-                            <p class="card-text small text-secondary mb-0">Review dan kelola UMKM</p>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('admin.categories') }}" class="card border text-decoration-none h-100 hover-shadow">
-                        <div class="card-body">
-                            <div class="h2 mb-2">📁</div>
-                            <h6 class="card-title">Kelola Kategori</h6>
-                            <p class="card-text small text-secondary mb-0">Tambah dan edit kategori</p>
-                        </div>
-                    </a>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="text-secondary mb-3">Aksi Cepat</h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ route('admin.users') }}" class="btn btn-outline-primary">
+                            <span class="admin-nav-icon">👥</span> Kelola Users
+                        </a>
+                        <a href="{{ route('admin.umkms') }}" class="btn btn-outline-primary">
+                            <span class="admin-nav-icon">🏪</span> Kelola UMKM
+                        </a>
+                        <a href="{{ route('admin.categories') }}" class="btn btn-outline-primary">
+                            <span class="admin-nav-icon">📁</span> Kelola Kategori
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
