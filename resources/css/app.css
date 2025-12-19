@@ -2,6 +2,12 @@
 
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
+/* Prevent Tailwind's `collapse` (visibility) utility from breaking Bootstrap Collapse/Accordion */
+.collapse,
+.collapsing {
+    visibility: visible;
+}
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';

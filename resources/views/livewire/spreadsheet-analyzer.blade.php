@@ -175,16 +175,22 @@
                             <h5 class="mb-0">📑 2. Detail Per Sheet</h5>
                         </div>
                         <div class="card-body">
-                            <div class="accordion" id="sheetAccordion">
+                            @php
+                                $accordionId = 'sheetAccordion'.($selectedUpload?->id ? ('-'.$selectedUpload->id) : '-current');
+                            @endphp
+                            <div class="accordion" id="{{ $accordionId }}">
                                 @foreach($analysisResult['sheet_details'] as $sheetName => $sheetData)
-                                    <div class="accordion-item">
+                                    @php
+                                        $sheetCollapseId = 'sheet'.($selectedUpload?->id ? ('-'.$selectedUpload->id) : '-current').'-'.$loop->index;
+                                    @endphp
+                                    <div class="accordion-item" wire:key="{{ $sheetCollapseId }}">
                                         <h2 class="accordion-header">
-                                            <button class="accordion-button {{ $loop->first ? '' : 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#sheet{{ $loop->index }}">
+                                            <button class="accordion-button {{ $loop->first ? '' : 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $sheetCollapseId }}">
                                                 <strong>{{ $sheetName }}</strong>
                                                 <span class="badge bg-secondary ms-2">{{ $sheetData['jumlah_baris'] ?? 0 }} baris</span>
                                             </button>
                                         </h2>
-                                        <div id="sheet{{ $loop->index }}" class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}" data-bs-parent="#sheetAccordion">
+                                        <div id="{{ $sheetCollapseId }}" class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}" data-bs-parent="#{{ $accordionId }}">
                                             <div class="accordion-body">
                                                 {{-- Business Function --}}
                                                 @if(isset($sheetData['fungsi_bisnis']))
