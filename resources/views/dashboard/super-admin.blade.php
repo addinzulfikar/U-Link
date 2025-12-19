@@ -4,70 +4,130 @@
 
 @section('content')
 <div class="container">
-    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-4">
-        <div>
-            <h1 class="h3 fw-bold mb-1">Dashboard Super Admin</h1>
-            <div class="text-secondary">Selamat datang, <span class="fw-semibold">{{ Auth::user()->name }}</span></div>
-        </div>
-        <span class="badge text-bg-danger-subtle border border-danger-subtle text-danger-emphasis px-3 py-2">Role: Super Admin</span>
+    <div class="mb-4">
+        <h1 class="h3 fw-bold mb-1">Dashboard Super Admin</h1>
+        <div class="text-secondary">Selamat datang, <span class="fw-semibold">{{ Auth::user()->name }}</span></div>
     </div>
 
-    <div class="row g-3 g-lg-4">
-        <div class="col-lg-7">
-            <div class="card shadow-sm border-0">
+    <!-- Platform Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h2 class="h5 fw-semibold mb-3">Fitur untuk Anda</h2>
-                    <div class="list-group list-group-flush">
-                        <div class="list-group-item px-0">Mengelola semua pengguna (User, Admin Toko)</div>
-                        <div class="list-group-item px-0">Moderasi konten produk dan jasa</div>
-                        <div class="list-group-item px-0">Melihat statistik platform secara keseluruhan</div>
-                        <div class="list-group-item px-0">Mengelola kategori produk/jasa</div>
-                        <div class="list-group-item px-0">Mengelola pengaturan sistem</div>
-                        <div class="list-group-item px-0">Verifikasi dan approve UMKM baru</div>
-                    </div>
-
-                    <div class="d-flex gap-2 flex-wrap mt-4">
-                        <a href="#" class="btn btn-primary">Kelola User</a>
-                        <a href="#" class="btn btn-success">Kelola UMKM</a>
-                        <a href="#" class="btn btn-warning">Moderasi Konten</a>
-                    </div>
+                    <div class="text-secondary small mb-1">Total Users</div>
+                    <div class="h3 fw-bold mb-0">{{ $stats['total_users'] }}</div>
+                    <a href="{{ route('admin.users') }}" class="stretched-link text-decoration-none small">Kelola →</a>
                 </div>
             </div>
         </div>
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-secondary small mb-1">UMKM Aktif</div>
+                    <div class="h3 fw-bold mb-0">{{ $stats['total_umkms'] }}</div>
+                    <a href="{{ route('admin.umkms') }}" class="stretched-link text-decoration-none small">Kelola →</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-secondary small mb-1">Pending UMKM</div>
+                    <div class="h3 fw-bold mb-0">{{ $stats['pending_umkms'] }}</div>
+                    <a href="{{ route('admin.umkms', ['status' => 'pending']) }}" class="stretched-link text-decoration-none small">Review →</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-secondary small mb-1">Total Produk</div>
+                    <div class="h3 fw-bold mb-0">{{ $stats['total_products'] }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <div class="col-lg-5">
+    <!-- Pending UMKM -->
+    @if($pendingUmkms->count() > 0)
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">UMKM Menunggu Persetujuan</h5>
+                    <a href="{{ route('admin.umkms', ['status' => 'pending']) }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nama UMKM</th>
+                                <th>Pemilik</th>
+                                <th>Kota</th>
+                                <th>Tanggal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pendingUmkms as $umkm)
+                                <tr>
+                                    <td class="fw-semibold">{{ $umkm->name }}</td>
+                                    <td>{{ $umkm->owner->name }}</td>
+                                    <td>{{ $umkm->city ?? '-' }}</td>
+                                    <td>{{ $umkm->created_at->diffForHumans() }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <form method="POST" action="{{ route('admin.umkms.approve', $umkm->id) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success" onclick="return confirm('Setujui UMKM ini?')">✓ Setuju</button>
+                                            </form>
+                                            <form method="POST" action="{{ route('admin.umkms.reject', $umkm->id) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-danger" onclick="return confirm('Tolak UMKM ini?')">✗ Tolak</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Quick Actions -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <h5 class="fw-semibold mb-3">Manajemen</h5>
             <div class="row g-3">
-                <div class="col-6">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body p-3 p-lg-4">
-                            <div class="text-secondary small">Total User</div>
-                            <div class="display-6 fw-bold mb-0">0</div>
+                <div class="col-md-4">
+                    <a href="{{ route('admin.users') }}" class="card border text-decoration-none h-100 hover-shadow">
+                        <div class="card-body">
+                            <div class="h2 mb-2">👥</div>
+                            <h6 class="card-title">Kelola Users</h6>
+                            <p class="card-text small text-secondary mb-0">Kelola semua pengguna platform</p>
                         </div>
-                    </div>
+                    </a>
                 </div>
-                <div class="col-6">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body p-3 p-lg-4">
-                            <div class="text-secondary small">Total UMKM</div>
-                            <div class="display-6 fw-bold mb-0">0</div>
+                <div class="col-md-4">
+                    <a href="{{ route('admin.umkms') }}" class="card border text-decoration-none h-100 hover-shadow">
+                        <div class="card-body">
+                            <div class="h2 mb-2">🏪</div>
+                            <h6 class="card-title">Kelola UMKM</h6>
+                            <p class="card-text small text-secondary mb-0">Review dan kelola UMKM</p>
                         </div>
-                    </div>
+                    </a>
                 </div>
-                <div class="col-6">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body p-3 p-lg-4">
-                            <div class="text-secondary small">Total Produk</div>
-                            <div class="display-6 fw-bold mb-0">0</div>
+                <div class="col-md-4">
+                    <a href="{{ route('admin.categories') }}" class="card border text-decoration-none h-100 hover-shadow">
+                        <div class="card-body">
+                            <div class="h2 mb-2">📁</div>
+                            <h6 class="card-title">Kelola Kategori</h6>
+                            <p class="card-text small text-secondary mb-0">Tambah dan edit kategori</p>
                         </div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body p-3 p-lg-4">
-                            <div class="text-secondary small">UMKM Pending</div>
-                            <div class="display-6 fw-bold mb-0">0</div>
-                        </div>
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>
