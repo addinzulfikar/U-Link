@@ -3,67 +3,54 @@
 @section('title', 'Login - U-LINK')
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center">
-    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Login ke Akun Anda
-            </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                Belum punya akun?
-                <a href="{{ route('register') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                    Daftar sekarang
-                </a>
-            </p>
-        </div>
-        <form class="mt-8 space-y-6" action="{{ route('login') }}" method="POST">
-            @csrf
-            <div class="rounded-md shadow-sm -space-y-px">
-                <div>
-                    <label for="email" class="sr-only">Email</label>
-                    <input id="email" name="email" type="email" required 
-                           class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" 
-                           placeholder="Email" value="{{ old('email') }}">
-                </div>
-                <div>
-                    <label for="password" class="sr-only">Password</label>
-                    <input id="password" name="password" type="password" required 
-                           class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" 
-                           placeholder="Password">
-                </div>
-            </div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-lg-5">
+                    <h1 class="h3 fw-bold text-center mb-2">Login</h1>
+                    <p class="text-center text-secondary mb-4">
+                        Belum punya akun?
+                        <a href="{{ route('register') }}" class="link-primary text-decoration-none fw-semibold">Daftar sekarang</a>
+                    </p>
 
-            @if ($errors->any())
-                <div class="rounded-md bg-red-50 p-4">
-                    <div class="flex">
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">
+                    @if ($errors->any())
+                        <div class="alert alert-danger" role="alert">
+                            <ul class="mb-0 ps-3">
                                 @foreach ($errors->all() as $error)
-                                    {{ $error }}
+                                    <li>{{ $error }}</li>
                                 @endforeach
-                            </h3>
+                            </ul>
                         </div>
-                    </div>
-                </div>
-            @endif
+                    @endif
 
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <input id="remember" name="remember" type="checkbox" 
-                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                    <label for="remember" class="ml-2 block text-sm text-gray-900">
-                        Ingat saya
-                    </label>
+                    <form action="{{ route('login') }}" method="POST" class="vstack gap-3">
+                        @csrf
+
+                        <div>
+                            <label for="email" class="form-label">Email</label>
+                            <input id="email" name="email" type="email" required
+                                   class="form-control form-control-lg" placeholder="nama@email.com"
+                                   value="{{ old('email') }}" autocomplete="email">
+                        </div>
+
+                        <div>
+                            <label for="password" class="form-label">Password</label>
+                            <input id="password" name="password" type="password" required
+                                   class="form-control form-control-lg" placeholder="Password"
+                                   autocomplete="current-password">
+                        </div>
+
+                        <div class="form-check">
+                            <input id="remember" name="remember" type="checkbox" class="form-check-input">
+                            <label for="remember" class="form-check-label">Ingat saya</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">Login</button>
+                    </form>
                 </div>
             </div>
-
-            <div>
-                <button type="submit" 
-                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Login
-                </button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 @endsection
