@@ -264,11 +264,24 @@ class FinancialOverviewService
 
         // Try parsing as string
         if (is_string($value)) {
+            // Handle DD/MM/YYYY format
+            if (preg_match('/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/', $value, $matches)) {
+                try {
+                    $date = \DateTime::createFromFormat('Y-m-d', $matches[3] . '-' . $matches[2] . '-' . $matches[1]);
+                    if ($date !== false) {
+                        return $date->format('Y-m-d');
+                    }
+                } catch (\Throwable $e) {
+                    // Invalid date
+                }
+            }
+            
+            // Try standard parsing for other formats
             try {
                 $date = new \DateTime($value);
                 return $date->format('Y-m-d');
-            } catch (\Exception $e) {
-                // Invalid date string
+            } catch (\Throwable $e) {
+                // Invalid date string - catch all exceptions including DateMalformedStringException
             }
         }
 
@@ -312,8 +325,9 @@ class FinancialOverviewService
         }
 
         // Remove currency symbols and formatting
-        $cleaned = preg_replace('/[^0-9.,\-]/', '', (string)$value);
-        $cleaned = str_replace(',', '.', $cleaned);
+        // Remove "Rp", "Rp.", spaces, and convert comma to period
+        $cleaned = preg_replace('/[Rp\.\s\-]/', '', (string)$value);
+        $cleaned = str_replace(',', '', $cleaned); // Remove thousand separators
         
         if (is_numeric($cleaned)) {
             return (float)$cleaned;
