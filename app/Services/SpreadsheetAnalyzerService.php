@@ -35,8 +35,8 @@ class SpreadsheetAnalyzerService
      * Common keywords found in header rows
      */
     protected const HEADER_KEYWORDS = [
-        'nama', 'name', 'tipe', 'type', 'kategori', 'category', 
-        'harga', 'price', 'stok', 'stock', 'deskripsi', 'description', 
+        'nama', 'name', 'tipe', 'type', 'kategori', 'category',
+        'harga', 'price', 'stok', 'stock', 'deskripsi', 'description',
         'status', 'jumlah', 'qty', 'quantity', 'tanggal', 'date',
     ];
 
@@ -210,7 +210,8 @@ class SpreadsheetAnalyzerService
             $dataType = $this->detectDataType($values, $headerName);
             $explanation = $this->getColumnExplanation($headerName, $dataType);
 
-            $totalDataRows = $sampleRows - $headerRow; // Total data rows in the sample
+            // Calculate total data rows sampled (from headerRow+1 to sampleRows)
+            $totalDataRows = $sampleRows - $headerRow;
             $columns[] = [
                 'nama_kolom' => $headerName,
                 'tipe_data' => $dataType,

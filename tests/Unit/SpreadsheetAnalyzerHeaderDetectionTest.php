@@ -14,7 +14,7 @@ class SpreadsheetAnalyzerHeaderDetectionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $uniqueName = 'test_template_'.time().'_'.uniqid().'.xlsx';
+        $uniqueName = uniqid('test_template_', true).'.xlsx';
         $this->tempFilePath = $uniqueName; // Path relative to storage/app/private
     }
 
@@ -35,7 +35,9 @@ class SpreadsheetAnalyzerHeaderDetectionTest extends TestCase
         // Ensure directory exists
         $directory = dirname($fullPath);
         if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
+            if (! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $directory));
+            }
         }
         
         $writer->save($fullPath);
