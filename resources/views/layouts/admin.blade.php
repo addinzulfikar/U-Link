@@ -7,15 +7,17 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <style>
+        /* Xero-style Admin Layout */
         .admin-wrapper {
             display: flex;
             min-height: 100vh;
+            background: #F9FAFB;
         }
         
         .admin-sidebar {
             width: 260px;
-            background: #2c3e50;
-            color: #ecf0f1;
+            background: #FFFFFF;
+            border-right: 1px solid #E5E7EB;
             position: fixed;
             height: 100vh;
             overflow-y: auto;
@@ -27,23 +29,23 @@
         }
         
         .admin-sidebar::-webkit-scrollbar-track {
-            background: #34495e;
+            background: #F3F4F6;
         }
         
         .admin-sidebar::-webkit-scrollbar-thumb {
-            background: #7f8c8d;
+            background: #D1D5DB;
             border-radius: 3px;
         }
         
         .admin-sidebar-header {
             padding: 1.5rem 1.25rem;
-            border-bottom: 1px solid rgba(236, 240, 241, 0.1);
+            border-bottom: 1px solid #E5E7EB;
         }
         
         .admin-sidebar-brand {
             font-size: 1.5rem;
-            font-weight: 700;
-            color: #fff;
+            font-weight: 600;
+            color: #111827;
             text-decoration: none;
             display: flex;
             align-items: center;
@@ -60,19 +62,19 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #95a5a6;
+            color: #6B7280;
         }
         
         .admin-nav-item {
             display: block;
             padding: 0.75rem 1.25rem;
-            color: #ecf0f1;
+            color: #6B7280;
             text-decoration: none;
             transition: all 0.2s ease;
-            border-left: 3px solid transparent;
+            border-left: 2px solid transparent;
+            font-size: 0.875rem;
         }
         
-        /* NEW: make toggle button look like .admin-nav-item */
         .admin-nav-toggle {
             width: 100%;
             background: transparent;
@@ -81,7 +83,6 @@
             cursor: pointer;
         }
         
-        /* Apply the same look to button toggles */
         .admin-nav-toggle.admin-nav-item {
             display: flex;
             align-items: center;
@@ -89,15 +90,16 @@
         }
         
         .admin-nav-item:hover {
-            background: rgba(52, 73, 94, 0.5);
-            color: #fff;
-            border-left-color: #3498db;
+            background: #F9FAFB;
+            color: #111827;
+            border-left-color: #E5E7EB;
         }
         
         .admin-nav-item.active {
-            background: rgba(52, 152, 219, 0.2);
-            color: #fff;
-            border-left-color: #3498db;
+            background: #F3F4F6;
+            color: #1F73B7;
+            border-left-color: #1F73B7;
+            font-weight: 500;
         }
         
         .admin-nav-icon {
@@ -105,12 +107,12 @@
             width: 1.5rem;
             margin-right: 0.75rem;
             text-align: center;
+            font-size: 1rem;
         }
         
-        /* NEW: caret for dropdown */
         .admin-nav-caret {
             margin-left: auto;
-            opacity: 0.9;
+            opacity: 0.6;
             transition: transform 0.2s ease;
         }
         
@@ -118,39 +120,38 @@
             transform: rotate(180deg);
         }
         
-        /* NEW: nested items */
         .admin-nav-sub {
             padding: 0.25rem 0;
         }
         
         .admin-nav-sub .admin-nav-item {
-            padding-left: 2.75rem; /* indent children */
-            font-size: 0.95rem;
-            opacity: 0.95;
+            padding-left: 2.75rem;
+            font-size: 0.875rem;
+            opacity: 0.9;
         }
         
         .admin-main {
             flex: 1;
             margin-left: 260px;
-            background: #ecf0f1;
+            background: #F9FAFB;
         }
         
         .admin-header {
-            background: #fff;
-            border-bottom: 1px solid #dee2e6;
-            padding: 1rem 1.5rem;
+            background: #FFFFFF;
+            border-bottom: 1px solid #E5E7EB;
+            padding: 1.25rem 2rem;
             position: sticky;
             top: 0;
             z-index: 100;
         }
         
         .admin-content {
-            padding: 1.5rem;
+            padding: 2rem;
         }
         
         .admin-user-info {
             padding: 1rem 1.25rem;
-            border-top: 1px solid rgba(236, 240, 241, 0.1);
+            border-top: 1px solid #E5E7EB;
             margin-top: auto;
         }
         
@@ -158,12 +159,13 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #3498db;
+            background: #1F73B7;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
             font-size: 1rem;
+            color: white;
         }
         
         .admin-badge {
@@ -171,7 +173,7 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.7rem;
             border-radius: 0.25rem;
-            font-weight: 600;
+            font-weight: 500;
         }
         
         @media (max-width: 768px) {
@@ -192,11 +194,11 @@
 </head>
 <body>
     <div class="admin-wrapper">
-        <!-- Sidebar -->
+        <!-- Sidebar - Xero-style: Minimal, clean -->
         <aside class="admin-sidebar">
             <div class="admin-sidebar-header">
                 <a href="{{ url('/') }}" class="admin-sidebar-brand">
-                    <span style="color: #3498db;">U</span>-LINK
+                    <span style="color: #1F73B7;">U</span>-LINK
                 </a>
             </div>
             
@@ -210,19 +212,19 @@
                         {{ substr(Auth::user()->name, 0, 1) }}
                     </div>
                     <div class="flex-fill" style="min-width: 0;">
-                        <div class="fw-semibold text-truncate" style="font-size: 0.9rem;">{{ Auth::user()->name }}</div>
-                        <div style="font-size: 0.75rem; color: #95a5a6;">
+                        <div class="fw-semibold text-truncate" style="font-size: 0.875rem; color: #111827;">{{ Auth::user()->name }}</div>
+                        <div style="font-size: 0.75rem; color: #6B7280;">
                             @if(Auth::user()->isSuperAdmin())
-                                <span class="admin-badge" style="background: #e74c3c;">Super Admin</span>
+                                <span class="admin-badge" style="background: #FEE2E2; color: #991B1B;">Super Admin</span>
                             @elseif(Auth::user()->isAdminToko())
-                                <span class="admin-badge" style="background: #f39c12;">Admin Toko</span>
+                                <span class="admin-badge" style="background: #FEF3C7; color: #92400E;">Admin Toko</span>
                             @endif
                         </div>
                     </div>
                 </div>
                 <form method="POST" action="{{ route('logout') }}" class="mt-3">
                     @csrf
-                    <button type="submit" class="btn btn-sm btn-outline-light w-100">
+                    <button type="submit" class="btn btn-sm w-100" style="border: 1px solid #E5E7EB; color: #6B7280; background: transparent;">
                         <span class="admin-nav-icon">🚪</span> Logout
                     </button>
                 </form>
@@ -233,9 +235,9 @@
         <main class="admin-main">
             <header class="admin-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h1 class="h4 mb-0 fw-bold">@yield('page-title', 'Dashboard')</h1>
+                    <h1 class="h4 mb-0" style="font-weight: 600; color: #111827;">@yield('page-title', 'Dashboard')</h1>
                     <div>
-                        <a href="{{ url('/') }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ url('/') }}" class="btn btn-sm" style="border: 1px solid #E5E7EB; color: #6B7280; background: white;">
                             <span>🏠</span> Kembali ke Beranda
                         </a>
                     </div>
@@ -244,7 +246,7 @@
             
             @if(session('success'))
                 <div class="admin-content">
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <div class="alert alert-dismissible fade show" role="alert" style="background: #D1FAE5; border: 1px solid #059669; color: #065F46; border-radius: 8px;">
                         {{ session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -253,7 +255,7 @@
             
             @if(session('error'))
                 <div class="admin-content">
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <div class="alert alert-dismissible fade show" role="alert" style="background: #FEE2E2; border: 1px solid #DC2626; color: #991B1B; border-radius: 8px;">
                         {{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -268,7 +270,6 @@
 
     @livewireScripts
 
-    <!-- NEW: auto-open dropdown if it contains an active link -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const activeLinks = document.querySelectorAll('.admin-nav-sub .admin-nav-item.active');
@@ -276,12 +277,10 @@
                 const collapseEl = link.closest('.collapse');
                 if (!collapseEl) return;
 
-                // If Bootstrap JS is available, open properly
                 if (window.bootstrap && window.bootstrap.Collapse) {
                     const instance = window.bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
                     instance.show();
                 } else {
-                    // Fallback: just force show
                     collapseEl.classList.add('show');
                 }
 
