@@ -71,7 +71,7 @@ class SpreadsheetAnalyzer extends Component
         $umkm = Auth::user()->umkm;
         
         if ($umkm) {
-            $service = new \App\Services\FinancialOverviewService;
+            $service = app(\App\Services\FinancialOverviewService::class);
             try {
                 $this->financialOverview = $service->generateOverview($umkm->id);
             } catch (\Exception $e) {
@@ -269,7 +269,7 @@ class SpreadsheetAnalyzer extends Component
             }
 
             // Process all files and merge financial data
-            $financialService = new \App\Services\FinancialOverviewService;
+            $financialService = app(\App\Services\FinancialOverviewService::class);
             $result = $financialService->processFinancialData($filePaths, $umkm->id, $uploadIds[0] ?? null);
 
             // Update upload records with processing results

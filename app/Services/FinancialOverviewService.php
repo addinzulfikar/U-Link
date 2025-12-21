@@ -281,7 +281,7 @@ class FinancialOverviewService
                 $date = new \DateTime($value);
                 return $date->format('Y-m-d');
             } catch (\Throwable $e) {
-                // Invalid date string - catch all exceptions including DateMalformedStringException
+                // Invalid date string - catch all throwables including date parsing exceptions
             }
         }
 
