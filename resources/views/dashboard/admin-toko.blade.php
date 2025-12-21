@@ -18,7 +18,7 @@
     @if(!$umkm)
         <!-- No UMKM Card - Xero-style: Clean, centered, minimal -->
         <div class="bg-white border border-gray-200 rounded-lg p-12 text-center">
-            <div class="text-6xl mb-4">🏪</div>
+            <div class="text-6xl mb-4"></div>
             <h3 class="text-2xl font-semibold text-gray-900 mb-3">Belum Punya UMKM?</h3>
             <p class="text-gray-500 mb-6 max-w-md mx-auto">Daftarkan UMKM Anda sekarang dan mulai promosikan produk/jasa Anda!</p>
             <a href="{{ route('umkm.create') }}" class="inline-block bg-primary hover:bg-primary-dark text-white font-medium px-6 py-2.5 rounded-lg transition-colors">Daftar UMKM</a>
@@ -72,6 +72,29 @@
                 </div>
             </div>
         </div>
+
+        <!-- Charts - Pie + Bar (Chart.js) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="text-base font-semibold text-gray-900">Komposisi Produk vs Jasa</h5>
+                </div>
+                <div class="h-64">
+                    <canvas id="adminTokoPieChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="text-base font-semibold text-gray-900">Stok Tertinggi (Top)</h5>
+                </div>
+                <div class="h-64">
+                    <canvas id="adminTokoBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminTokoChartsData" data-charts='@json($dashboardCharts ?? null)' class="hidden"></div>
 
         <!-- Recent Products - Xero-style: Table is secondary, minimal -->
         @if($recentProducts->count() > 0)
@@ -144,6 +167,7 @@
                 </a>
             </div>
         </div>
+
     @endif
 </div>
 @endsection

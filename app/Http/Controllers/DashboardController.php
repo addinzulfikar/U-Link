@@ -57,6 +57,16 @@ class DashboardController extends Controller
         ];
 
         $recentProducts = collect();
+        $dashboardCharts = [
+            'pie' => [
+                'labels' => ['Produk', 'Jasa'],
+                'values' => [0, 0],
+            ],
+            'bar' => [
+                'labels' => [],
+                'values' => [],
+            ],
+        ];
 
         if ($umkm) {
             $stats['total_products'] = $umkm->products()->where('type', Product::TYPE_PRODUCT)->count();
@@ -64,9 +74,24 @@ class DashboardController extends Controller
             $stats['total_favorites'] = $umkm->favorites()->count();
 
             $recentProducts = $umkm->products()->latest()->take(5)->get();
+
+            $dashboardCharts['pie']['values'] = [
+                (int) $stats['total_products'],
+                (int) $stats['total_services'],
+            ];
+
+            $topStocks = $umkm->products()
+                ->where('type', Product::TYPE_PRODUCT)
+                ->select(['name', 'stock'])
+                ->orderByDesc('stock')
+                ->take(7)
+                ->get();
+
+            $dashboardCharts['bar']['labels'] = $topStocks->pluck('name')->values()->all();
+            $dashboardCharts['bar']['values'] = $topStocks->pluck('stock')->map(fn ($v) => (int) ($v ?? 0))->values()->all();
         }
 
-        return view('dashboard.admin-toko', compact('umkm', 'stats', 'recentProducts'));
+        return view('dashboard.admin-toko', compact('umkm', 'stats', 'recentProducts', 'dashboardCharts'));
     }
 
     /**

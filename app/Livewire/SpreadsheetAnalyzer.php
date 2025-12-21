@@ -2,9 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Models\FinancialTransaction;
 use App\Models\SpreadsheetUpload;
+use App\Services\ProductTemplateMergeService;
 use App\Services\SpreadsheetAnalyzerService;
+use App\Services\SpreadsheetPreviewService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -17,11 +21,13 @@ class SpreadsheetAnalyzer extends Component
     
     public $spreadsheetFiles = []; // Support multiple files
 
-    public $uploadedFiles = [];
+    public $uploadedFiles;
 
     public $selectedUpload = null;
 
     public $analysisResult = null;
+
+    public array $sheetPreviews = [];
     
     public $financialOverview = null;
 
@@ -32,6 +38,8 @@ class SpreadsheetAnalyzer extends Component
     public $errorMessage = null;
 
     public $successMessage = null;
+
+    public $isMergingProducts = false;
 
     protected $rules = [
         'spreadsheetFile' => 'nullable|file|mimes:xlsx,xls,csv,ods|max:10240', // Max 10MB
@@ -49,6 +57,7 @@ class SpreadsheetAnalyzer extends Component
 
     public function mount()
     {
+        $this->uploadedFiles = collect();
         $this->loadUploadedFiles();
         $this->loadFinancialOverview();
     }
@@ -64,6 +73,13 @@ class SpreadsheetAnalyzer extends Component
         } else {
             $this->uploadedFiles = collect();
         }
+
+        // Keep UI state in sync when there are no files anymore
+        if ($this->uploadedFiles->count() === 0) {
+            $this->selectedUpload = null;
+            $this->analysisResult = null;
+            $this->sheetPreviews = [];
+        }
     }
     
     public function loadFinancialOverview()
@@ -74,11 +90,38 @@ class SpreadsheetAnalyzer extends Component
             $service = app(\App\Services\FinancialOverviewService::class);
             try {
                 $this->financialOverview = $service->generateOverview($umkm->id);
+                $this->dispatchSalesTrendChart();
             } catch (\Exception $e) {
                 // Silently fail if no data yet
                 $this->financialOverview = null;
+                $this->dispatchSalesTrendChart();
             }
         }
+    }
+
+    private function dispatchSalesTrendChart(): void
+    {
+        $trends = $this->financialOverview['monthly_trends'] ?? [];
+
+        if (empty($trends) || !is_array($trends)) {
+            $this->dispatch('sales-trend-chart', labels: [], values: []);
+            return;
+        }
+
+        $labels = [];
+        $values = [];
+
+        foreach ($trends as $trend) {
+            $month = $trend['month'] ?? null;
+            if (!$month) {
+                continue;
+            }
+            // month is stored as Y-m
+            $labels[] = date('M Y', strtotime($month . '-01'));
+            $values[] = (float) ($trend['income'] ?? 0);
+        }
+
+        $this->dispatch('sales-trend-chart', labels: $labels, values: $values);
     }
 
     public function uploadAndAnalyze()
@@ -125,6 +168,7 @@ class SpreadsheetAnalyzer extends Component
 
             $this->analysisResult = $result;
             $this->selectedUpload = $upload;
+            $this->loadSheetPreviews();
             $this->successMessage = 'File berhasil diupload dan dianalisis!';
             $this->spreadsheetFile = null;
             $this->loadUploadedFiles();
@@ -142,13 +186,13 @@ class SpreadsheetAnalyzer extends Component
         if ($upload && $upload->umkm_id === Auth::user()->umkm?->id) {
             $this->selectedUpload = $upload;
             $this->analysisResult = $upload->analysis_result;
+            $this->loadSheetPreviews();
         }
     }
 
     public function reanalyze($uploadId)
     {
         $upload = SpreadsheetUpload::find($uploadId);
-
         if (! $upload || $upload->umkm_id !== Auth::user()->umkm?->id) {
             $this->errorMessage = 'File tidak ditemukan.';
 
@@ -169,6 +213,7 @@ class SpreadsheetAnalyzer extends Component
 
             $this->analysisResult = $result;
             $this->selectedUpload = $upload;
+            $this->loadSheetPreviews();
             $this->successMessage = 'File berhasil dianalisis ulang!';
         } catch (\Exception $e) {
             $this->errorMessage = 'Terjadi kesalahan: '.$e->getMessage();
@@ -204,6 +249,9 @@ class SpreadsheetAnalyzer extends Component
             // Delete the file from storage
             Storage::delete($upload->file_path);
 
+            // Delete any imported financial transactions related to this upload
+            FinancialTransaction::where('spreadsheet_upload_id', $upload->id)->delete();
+
             // Delete the record
             $upload->delete();
 
@@ -212,9 +260,11 @@ class SpreadsheetAnalyzer extends Component
             if ($this->selectedUpload && $this->selectedUpload->id === $uploadId) {
                 $this->selectedUpload = null;
                 $this->analysisResult = null;
+                $this->sheetPreviews = [];
             }
 
             $this->loadUploadedFiles();
+            $this->loadFinancialOverview();
         } catch (\Exception $e) {
             $this->errorMessage = 'Gagal menghapus file: '.$e->getMessage();
         }
@@ -224,6 +274,66 @@ class SpreadsheetAnalyzer extends Component
     {
         $this->selectedUpload = null;
         $this->analysisResult = null;
+        $this->sheetPreviews = [];
+    }
+
+    private function loadSheetPreviews(): void
+    {
+        $this->sheetPreviews = [];
+
+        if (! $this->selectedUpload?->file_path) {
+            return;
+        }
+
+        try {
+            $this->sheetPreviews = app(SpreadsheetPreviewService::class)->preview($this->selectedUpload->file_path);
+        } catch (\Throwable $e) {
+            Log::warning('Spreadsheet preview failed', [
+                'upload_id' => $this->selectedUpload?->id,
+                'error' => $e->getMessage(),
+            ]);
+            $this->sheetPreviews = [];
+        }
+    }
+
+    public function mergeProductsFromSelectedUpload()
+    {
+        if (! $this->selectedUpload) {
+            $this->errorMessage = 'Tidak ada file yang dipilih untuk di-merge.';
+
+            return;
+        }
+
+        $upload = SpreadsheetUpload::find($this->selectedUpload->id);
+        if (! $upload || $upload->umkm_id !== Auth::user()->umkm?->id) {
+            $this->errorMessage = 'File tidak ditemukan.';
+
+            return;
+        }
+
+        $this->isMergingProducts = true;
+        $this->errorMessage = null;
+        $this->successMessage = null;
+
+        try {
+            $umkm = Auth::user()->umkm;
+            if (! $umkm) {
+                throw new \Exception('Anda belum memiliki UMKM.');
+            }
+
+            $service = app(ProductTemplateMergeService::class);
+            $result = $service->mergeFromUpload($upload, $umkm->id);
+
+            if (! empty($result['errors'])) {
+                $this->errorMessage = 'Merge selesai dengan beberapa catatan: '.implode(' | ', array_slice($result['errors'], 0, 3));
+            }
+
+            $this->successMessage = "Merge Template Produk selesai: {$result['created']} dibuat, {$result['updated']} diperbarui, {$result['skipped']} dilewati.";
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Gagal merge produk: '.$e->getMessage();
+        } finally {
+            $this->isMergingProducts = false;
+        }
     }
     
     public function uploadAndProcessFinancials()
@@ -270,7 +380,7 @@ class SpreadsheetAnalyzer extends Component
 
             // Process all files and merge financial data
             $financialService = app(\App\Services\FinancialOverviewService::class);
-            $result = $financialService->processFinancialData($filePaths, $umkm->id, $uploadIds[0] ?? null);
+            $result = $financialService->processFinancialData($filePaths, $umkm->id, $uploadIds);
 
             // Update upload records with processing results
             foreach ($uploadIds as $uploadId) {

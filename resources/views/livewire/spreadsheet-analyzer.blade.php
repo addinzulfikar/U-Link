@@ -62,6 +62,13 @@
             @if(!empty($financialOverview['monthly_trends']))
                 <div class="bg-white border border-gray-200 rounded-lg p-6">
                     <h6 class="text-base font-semibold text-gray-900 mb-4">Tren 6 Bulan Terakhir</h6>
+
+                    <div class="mb-4" wire:ignore>
+                        <div class="h-64">
+                            <canvas id="salesTrendChart"></canvas>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -251,27 +258,40 @@
 
         {{-- Right Column: Analysis Result --}}
         <div class="md:col-span-2">
-            @if($analysisResult)
+            @if($analysisResult && $selectedUpload)
                 {{-- Analysis Header --}}
                 <div class="bg-white border border-gray-200 rounded-lg mb-6">
                     <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-green-50">
                         <h5 class="text-base font-semibold text-gray-900">Hasil Analisis</h5>
-                        <button class="text-sm font-medium text-gray-600 hover:text-gray-900" wire:click="closeAnalysis">✕ Tutup</button>
+                        <div class="flex items-center gap-3">
+                            <button
+                                class="text-sm font-medium text-green-700 hover:text-green-900 disabled:opacity-50"
+                                wire:click="mergeProductsFromSelectedUpload"
+                                wire:loading.attr="disabled"
+                                wire:target="mergeProductsFromSelectedUpload"
+                                @if($isMergingProducts) disabled @endif
+                            >
+                                @if($isMergingProducts)
+                                    Merging...
+                                @else
+                                    Merge Produk ke Database
+                                @endif
+                            </button>
+                            <button class="text-sm font-medium text-gray-600 hover:text-gray-900" wire:click="closeAnalysis">✕ Tutup</button>
+                        </div>
                     </div>
                     <div class="p-6">
-                        @if($selectedUpload)
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h6 class="font-semibold text-gray-900">{{ $selectedUpload->original_filename }}</h6>
-                                    <p class="text-xs text-gray-500">
-                                        Dianalisis: {{ $selectedUpload->analyzed_at ? $selectedUpload->analyzed_at->format('d M Y H:i') : 'Belum' }}
-                                    </p>
-                                </div>
-                                <button class="text-sm text-primary hover:text-primary-dark font-medium" wire:click="reanalyze({{ $selectedUpload->id }})">
-                                    Analisis Ulang
-                                </button>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h6 class="font-semibold text-gray-900">{{ $selectedUpload->original_filename }}</h6>
+                                <p class="text-xs text-gray-500">
+                                    Dianalisis: {{ $selectedUpload->analyzed_at ? $selectedUpload->analyzed_at->format('d M Y H:i') : 'Belum' }}
+                                </p>
                             </div>
-                        @endif
+                            <button class="text-sm text-primary hover:text-primary-dark font-medium" wire:click="reanalyze({{ $selectedUpload->id }})">
+                                Analisis Ulang
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -287,6 +307,52 @@
                                 @endforeach
                             </div>
                         @endif
+                    </div>
+                @endif
+
+                {{-- Preview Data Table (Excel-like) --}}
+                @if(!empty($sheetPreviews))
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                        <h5 class="text-sm font-semibold text-gray-900 mb-3">Preview Data (Tabel)</h5>
+                        <div class="space-y-6">
+                            @foreach($sheetPreviews as $sheetName => $preview)
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h6 class="text-xs font-semibold text-gray-500 uppercase">{{ $sheetName }}</h6>
+                                        <div class="text-xs text-gray-500">Header baris: {{ $preview['header_row'] ?? '-' }}</div>
+                                    </div>
+
+                                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                        <div class="overflow-auto">
+                                            <table class="min-w-full text-sm">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        @foreach(($preview['headers'] ?? []) as $header)
+                                                            <th class="px-3 py-2 text-left text-xs font-semibold text-gray-700 whitespace-nowrap">{{ $header !== '' ? $header : '-' }}</th>
+                                                        @endforeach
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-200 bg-white">
+                                                    @forelse(($preview['rows'] ?? []) as $row)
+                                                        <tr>
+                                                            @foreach($row as $cell)
+                                                                <td class="px-3 py-2 text-gray-700 whitespace-nowrap">{{ $cell !== '' ? $cell : '-' }}</td>
+                                                            @endforeach
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td class="px-3 py-3 text-sm text-gray-500" colspan="{{ max(1, count($preview['headers'] ?? [])) }}">
+                                                                Tidak ada data untuk ditampilkan.
+                                                            </td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
 

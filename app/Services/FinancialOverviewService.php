@@ -16,7 +16,7 @@ class FinancialOverviewService
      * Process financial data from uploaded spreadsheet(s)
      * Supports merging data from multiple files
      */
-    public function processFinancialData(array $filePaths, int $umkmId, ?int $uploadId = null): array
+    public function processFinancialData(array $filePaths, int $umkmId, ?array $uploadIds = null): array
     {
         $allTransactions = [];
         $errors = [];
@@ -27,9 +27,10 @@ class FinancialOverviewService
             'total_errors' => 0,
         ];
 
-        foreach ($filePaths as $filePath) {
+        foreach ($filePaths as $index => $filePath) {
             try {
-                $result = $this->processFile($filePath, $umkmId, $uploadId);
+                $uploadIdForFile = $uploadIds[$index] ?? null;
+                $result = $this->processFile($filePath, $umkmId, $uploadIdForFile);
                 $allTransactions = array_merge($allTransactions, $result['transactions']);
                 $errors = array_merge($errors, $result['errors']);
                 $stats['total_rows_processed'] += $result['rows_processed'];
