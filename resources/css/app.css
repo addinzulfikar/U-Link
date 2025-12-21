@@ -1,3 +1,6 @@
+/* Import Inter font for Xero-style UI */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @import 'tailwindcss';
 
 @import 'bootstrap/dist/css/bootstrap.min.css';
@@ -14,34 +17,36 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+/* Xero-style: Calm, clean background with lots of whitespace */
 .ulink-page {
-    background:
-        radial-gradient(900px circle at 15% -10%, rgba(var(--bs-primary-rgb), 0.10), transparent 60%),
-        radial-gradient(700px circle at 85% 0%, rgba(var(--bs-info-rgb), 0.10), transparent 55%),
-        linear-gradient(180deg, var(--bs-body-bg), var(--bs-tertiary-bg));
+    background: #F9FAFB;
+    min-height: 100vh;
 }
 
+/* Xero-style: Minimal card with soft border, no backdrop blur */
 .ulink-card {
-    border: 1px solid var(--bs-border-color-translucent);
-    background: rgba(var(--bs-body-bg-rgb), 0.9);
-    backdrop-filter: blur(10px);
+    border: 1px solid #E5E7EB;
+    background: #FFFFFF;
+    border-radius: 8px;
 }
 
-/* Modern Product Card */
+/* Xero-style: Calm product card, subtle hover */
 .product-card {
-    transition: all 0.3s ease;
-    border: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+    border: 1px solid #E5E7EB;
     overflow: hidden;
+    border-radius: 8px;
+    background: #FFFFFF;
 }
 
 .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    border-color: var(--bs-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-color: #D1D5DB;
 }
 
 .product-card-img {
@@ -62,19 +67,21 @@
     font-size: 3rem;
 }
 
-/* Badge Styles */
+/* Xero-style: Muted, professional badges */
 .badge-tokped {
-    background: linear-gradient(135deg, #42d392 0%, #647eff 100%);
+    background: #1F73B7;
     color: white;
-    font-weight: 600;
-    padding: 0.35em 0.65em;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
 }
 
 .badge-price {
-    background: var(--bs-success);
-    color: white;
-    font-weight: 700;
-    font-size: 1.1rem;
+    background: #F3F4F6;
+    color: #111827;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: 1px solid #E5E7EB;
 }
 
 /* Rating Stars */
@@ -134,13 +141,14 @@
     background: var(--bs-light);
 }
 
-/* Stats Card */
+/* Xero-style: Clean, minimal stat cards */
 .stat-card {
-    border-left: 4px solid var(--bs-primary);
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background: #FFFFFF;
     transition: all 0.2s ease;
 }
 
 .stat-card:hover {
-    transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
