@@ -31,8 +31,13 @@ class SpreadsheetAnalyzerHeaderDetectionTest extends TestCase
     {
         $writer = new Xlsx($spreadsheet);
         $fullPath = storage_path('app/private/'.$this->tempFilePath);
+        
         // Ensure directory exists
-        @mkdir(dirname($fullPath), 0755, true);
+        $directory = dirname($fullPath);
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+        
         $writer->save($fullPath);
     }
 

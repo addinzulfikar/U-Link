@@ -21,6 +21,25 @@ class SpreadsheetAnalyzerService
      */
     protected const DUPLICATE_CHECK_LIMIT = 500;
 
+    /**
+     * Maximum number of rows to search for headers
+     */
+    protected const MAX_HEADER_SEARCH_ROWS = 10;
+
+    /**
+     * Minimum number of non-empty columns required to identify a header row
+     */
+    protected const MIN_HEADER_COLUMNS = 3;
+
+    /**
+     * Common keywords found in header rows
+     */
+    protected const HEADER_KEYWORDS = [
+        'nama', 'name', 'tipe', 'type', 'kategori', 'category', 
+        'harga', 'price', 'stok', 'stock', 'deskripsi', 'description', 
+        'status', 'jumlah', 'qty', 'quantity', 'tanggal', 'date',
+    ];
+
     protected Spreadsheet $spreadsheet;
 
     protected array $analysisResult = [];
@@ -80,8 +99,8 @@ class SpreadsheetAnalyzerService
      */
     protected function detectHeaderRow(Worksheet $sheet, int $highestColumnIndex): int
     {
-        // Check first 10 rows to find the header row
-        $maxRowsToCheck = min(10, $sheet->getHighestRow());
+        // Check configured number of rows to find the header row
+        $maxRowsToCheck = min(self::MAX_HEADER_SEARCH_ROWS, $sheet->getHighestRow());
         
         for ($row = 1; $row <= $maxRowsToCheck; $row++) {
             $nonEmptyCount = 0;
@@ -98,16 +117,12 @@ class SpreadsheetAnalyzerService
             }
             
             // Header row should have multiple non-empty cells
-            $hasMultipleColumns = $nonEmptyCount >= 3;
+            $hasMultipleColumns = $nonEmptyCount >= self::MIN_HEADER_COLUMNS;
             
             // Check if this row looks like a header row by checking for common header keywords
-            $headerKeywords = ['nama', 'name', 'tipe', 'type', 'kategori', 'category', 'harga', 'price', 
-                              'stok', 'stock', 'deskripsi', 'description', 'status', 'jumlah', 'qty', 
-                              'quantity', 'tanggal', 'date'];
-            
             $hasHeaderKeywords = false;
             foreach ($cellValues as $value) {
-                foreach ($headerKeywords as $keyword) {
+                foreach (self::HEADER_KEYWORDS as $keyword) {
                     if (str_contains($value, $keyword)) {
                         $hasHeaderKeywords = true;
                         break 2;
