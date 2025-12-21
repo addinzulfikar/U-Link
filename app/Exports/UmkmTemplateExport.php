@@ -2,8 +2,11 @@
 
 namespace App\Exports;
 
+use App\Models\FinancialTransaction;
+use App\Models\Product;
 use App\Models\Umkm;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -13,6 +16,12 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 class UmkmTemplateExport
 {
     protected Umkm $umkm;
+
+    private const PRODUCT_DATA_START_ROW = 7;
+    private const PRODUCT_MAX_ROWS = 50;
+
+    private const FIN_DATA_START_ROW = 5;
+    private const FIN_MAX_ROWS = 100;
 
     public function __construct(Umkm $umkm)
     {
@@ -146,6 +155,8 @@ class UmkmTemplateExport
         foreach (range('A', 'G') as $columnID) {
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
+
+        $this->prefillProducts($sheet);
     }
     
     /**
@@ -248,6 +259,61 @@ class UmkmTemplateExport
         $sheet->getColumnDimension('C')->setWidth(20);
         $sheet->getColumnDimension('D')->setWidth(40);
         $sheet->getColumnDimension('E')->setWidth(20);
+
+        $this->prefillFinancialTransactions($sheet);
+    }
+
+    private function prefillProducts($sheet): void
+    {
+        $products = $this->umkm->products()
+            ->with('category')
+            ->orderBy('created_at')
+            ->limit(self::PRODUCT_MAX_ROWS)
+            ->get();
+
+        $row = self::PRODUCT_DATA_START_ROW;
+        foreach ($products as $product) {
+            $sheet->setCellValue('A'.$row, $product->name);
+            $sheet->setCellValue('B'.$row, $product->type === Product::TYPE_SERVICE ? 'Jasa' : 'Produk');
+            $sheet->setCellValue('C'.$row, $product->category?->name ?? '');
+            $sheet->setCellValue('D'.$row, $product->description ?? '');
+            $sheet->setCellValue('E'.$row, (int) ($product->price ?? 0));
+            $sheet->setCellValue('F'.$row, (int) ($product->stock ?? 0));
+            $sheet->setCellValue('G'.$row, $product->is_active ? 'Aktif' : 'Nonaktif');
+            $row++;
+        }
+    }
+
+    private function prefillFinancialTransactions($sheet): void
+    {
+        $transactions = FinancialTransaction::query()
+            ->where('umkm_id', $this->umkm->id)
+            ->orderBy('transaction_date')
+            ->orderBy('id')
+            ->limit(self::FIN_MAX_ROWS)
+            ->get(['transaction_date', 'transaction_type', 'description', 'amount']);
+
+        $row = self::FIN_DATA_START_ROW;
+        $no = 1;
+        foreach ($transactions as $tx) {
+            $sheet->setCellValue('A'.$row, $no);
+
+            $date = $tx->transaction_date;
+            if ($date) {
+                // Put as Excel date number for better sorting/formatting in Excel
+                $sheet->setCellValue('B'.$row, ExcelDate::PHPToExcel($date->toDateTime()));
+                $sheet->getStyle('B'.$row)->getNumberFormat()->setFormatCode('yyyy-mm-dd');
+            } else {
+                $sheet->setCellValue('B'.$row, '');
+            }
+
+            $sheet->setCellValue('C'.$row, $tx->transaction_type);
+            $sheet->setCellValue('D'.$row, $tx->description ?? '');
+            $sheet->setCellValue('E'.$row, (float) ($tx->amount ?? 0));
+
+            $row++;
+            $no++;
+        }
     }
 
     /**
