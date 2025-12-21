@@ -34,7 +34,7 @@
                 {{-- Saldo Bersih --}}
                 <div class="bg-white border border-gray-200 rounded-lg p-6">
                     <div class="text-xs text-gray-500 mb-2 font-normal">Saldo Bersih</div>
-                    <div class="text-4xl font-semibold {{ $financialOverview['overview']['net_balance'] >= 0 ? 'text-gray-900' : 'text-gray-900' }}">
+                    <div class="text-4xl font-semibold text-gray-900">
                         Rp {{ number_format($financialOverview['overview']['net_balance'], 0, ',', '.') }}
                     </div>
                     <div class="text-xs text-gray-500 mt-2">{{ $financialOverview['overview']['net_balance'] >= 0 ? 'Positif' : 'Perlu perhatian' }}</div>
@@ -78,7 +78,7 @@
                                         <td class="px-4 py-3 text-sm text-gray-900">{{ date('M Y', strtotime($trend['month'])) }}</td>
                                         <td class="px-4 py-3 text-sm text-right text-gray-900">Rp {{ number_format($trend['income'], 0, ',', '.') }}</td>
                                         <td class="px-4 py-3 text-sm text-right text-gray-900">Rp {{ number_format($trend['expense'], 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-sm text-right font-semibold {{ $trend['balance'] >= 0 ? 'text-gray-900' : 'text-gray-900' }}">
+                                        <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">
                                             Rp {{ number_format($trend['balance'], 0, ',', '.') }}
                                         </td>
                                     </tr>
