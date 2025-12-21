@@ -14,33 +14,43 @@ class SpreadsheetAnalyzer extends Component
     use WithFileUploads;
 
     public $spreadsheetFile;
+    
+    public $spreadsheetFiles = []; // Support multiple files
 
     public $uploadedFiles = [];
 
     public $selectedUpload = null;
 
     public $analysisResult = null;
+    
+    public $financialOverview = null;
 
     public $isAnalyzing = false;
+    
+    public $isProcessingFinancials = false;
 
     public $errorMessage = null;
 
     public $successMessage = null;
 
     protected $rules = [
-        'spreadsheetFile' => 'required|file|mimes:xlsx,xls,csv,ods|max:10240', // Max 10MB
+        'spreadsheetFile' => 'nullable|file|mimes:xlsx,xls,csv,ods|max:10240', // Max 10MB
+        'spreadsheetFiles.*' => 'nullable|file|mimes:xlsx,xls,csv,ods|max:10240', // Max 10MB each
     ];
 
     protected $messages = [
-        'spreadsheetFile.required' => 'Silakan pilih file spreadsheet.',
         'spreadsheetFile.file' => 'File tidak valid.',
         'spreadsheetFile.mimes' => 'Format file harus Excel (.xlsx, .xls), CSV, atau OpenDocument (.ods).',
         'spreadsheetFile.max' => 'Ukuran file maksimal 10MB.',
+        'spreadsheetFiles.*.file' => 'File tidak valid.',
+        'spreadsheetFiles.*.mimes' => 'Format file harus Excel (.xlsx, .xls), CSV, atau OpenDocument (.ods).',
+        'spreadsheetFiles.*.max' => 'Ukuran file maksimal 10MB per file.',
     ];
 
     public function mount()
     {
         $this->loadUploadedFiles();
+        $this->loadFinancialOverview();
     }
 
     public function loadUploadedFiles()
@@ -53,6 +63,21 @@ class SpreadsheetAnalyzer extends Component
                 ->get();
         } else {
             $this->uploadedFiles = collect();
+        }
+    }
+    
+    public function loadFinancialOverview()
+    {
+        $umkm = Auth::user()->umkm;
+        
+        if ($umkm) {
+            $service = new \App\Services\FinancialOverviewService;
+            try {
+                $this->financialOverview = $service->generateOverview($umkm->id);
+            } catch (\Exception $e) {
+                // Silently fail if no data yet
+                $this->financialOverview = null;
+            }
         }
     }
 
@@ -199,6 +224,83 @@ class SpreadsheetAnalyzer extends Component
     {
         $this->selectedUpload = null;
         $this->analysisResult = null;
+    }
+    
+    public function uploadAndProcessFinancials()
+    {
+        $this->validate([
+            'spreadsheetFiles.*' => 'required|file|mimes:xlsx,xls,csv,ods|max:10240',
+        ]);
+
+        $this->errorMessage = null;
+        $this->successMessage = null;
+        $this->isProcessingFinancials = true;
+
+        try {
+            $umkm = Auth::user()->umkm;
+
+            if (! $umkm) {
+                throw new \Exception('Anda belum memiliki UMKM. Silakan daftarkan UMKM terlebih dahulu.');
+            }
+
+            $filePaths = [];
+            $uploadIds = [];
+
+            // Store all files first
+            foreach ($this->spreadsheetFiles as $file) {
+                $originalName = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $filename = time().'_'.uniqid().'.'.$extension;
+                $path = $file->storeAs('spreadsheets/'.$umkm->id, $filename, 'local');
+
+                // Create upload record
+                $upload = SpreadsheetUpload::create([
+                    'umkm_id' => $umkm->id,
+                    'user_id' => Auth::id(),
+                    'filename' => $filename,
+                    'original_filename' => $originalName,
+                    'file_path' => $path,
+                    'file_type' => $extension,
+                    'file_size' => $file->getSize(),
+                ]);
+
+                $filePaths[] = Storage::path($path);
+                $uploadIds[] = $upload->id;
+            }
+
+            // Process all files and merge financial data
+            $financialService = new \App\Services\FinancialOverviewService;
+            $result = $financialService->processFinancialData($filePaths, $umkm->id, $uploadIds[0] ?? null);
+
+            // Update upload records with processing results
+            foreach ($uploadIds as $uploadId) {
+                SpreadsheetUpload::find($uploadId)->update([
+                    'analysis_result' => [
+                        'type' => 'financial_data',
+                        'processing_stats' => $result['stats'],
+                        'errors' => $result['errors'],
+                    ],
+                    'analyzed_at' => now(),
+                ]);
+            }
+
+            $errorCount = count($result['errors']);
+            $successCount = $result['stats']['total_rows_imported'];
+            
+            if ($errorCount > 0) {
+                $this->successMessage = "Berhasil memproses {$successCount} transaksi dari {$result['stats']['total_files']} file. Terdapat {$errorCount} baris dengan kesalahan yang tetap diimpor.";
+            } else {
+                $this->successMessage = "Berhasil memproses {$successCount} transaksi dari {$result['stats']['total_files']} file tanpa kesalahan!";
+            }
+
+            $this->spreadsheetFiles = [];
+            $this->loadUploadedFiles();
+            $this->loadFinancialOverview();
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Terjadi kesalahan: '.$e->getMessage();
+        }
+
+        $this->isProcessingFinancials = false;
     }
 
     public function render()

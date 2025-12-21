@@ -60,6 +60,16 @@ class Umkm extends Model
     {
         return $this->hasMany(Favorite::class);
     }
+    
+    public function financialTransactions(): HasMany
+    {
+        return $this->hasMany(FinancialTransaction::class);
+    }
+    
+    public function spreadsheetUploads(): HasMany
+    {
+        return $this->hasMany(SpreadsheetUpload::class);
+    }
 
     public function isPending(): bool
     {
