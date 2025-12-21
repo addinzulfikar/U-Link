@@ -72,6 +72,22 @@
             border-left: 3px solid transparent;
         }
         
+        /* NEW: make toggle button look like .admin-nav-item */
+        .admin-nav-toggle {
+            width: 100%;
+            background: transparent;
+            border: 0;
+            text-align: left;
+            cursor: pointer;
+        }
+        
+        /* Apply the same look to button toggles */
+        .admin-nav-toggle.admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
         .admin-nav-item:hover {
             background: rgba(52, 73, 94, 0.5);
             color: #fff;
@@ -89,6 +105,28 @@
             width: 1.5rem;
             margin-right: 0.75rem;
             text-align: center;
+        }
+        
+        /* NEW: caret for dropdown */
+        .admin-nav-caret {
+            margin-left: auto;
+            opacity: 0.9;
+            transition: transform 0.2s ease;
+        }
+        
+        .admin-nav-toggle[aria-expanded="true"] .admin-nav-caret {
+            transform: rotate(180deg);
+        }
+        
+        /* NEW: nested items */
+        .admin-nav-sub {
+            padding: 0.25rem 0;
+        }
+        
+        .admin-nav-sub .admin-nav-item {
+            padding-left: 2.75rem; /* indent children */
+            font-size: 0.95rem;
+            opacity: 0.95;
         }
         
         .admin-main {
@@ -227,6 +265,33 @@
             </div>
         </main>
     </div>
+
     @livewireScripts
+
+    <!-- NEW: auto-open dropdown if it contains an active link -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const activeLinks = document.querySelectorAll('.admin-nav-sub .admin-nav-item.active');
+            activeLinks.forEach(function (link) {
+                const collapseEl = link.closest('.collapse');
+                if (!collapseEl) return;
+
+                // If Bootstrap JS is available, open properly
+                if (window.bootstrap && window.bootstrap.Collapse) {
+                    const instance = window.bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
+                    instance.show();
+                } else {
+                    // Fallback: just force show
+                    collapseEl.classList.add('show');
+                }
+
+                const id = collapseEl.getAttribute('id');
+                if (!id) return;
+
+                const toggle = document.querySelector('[data-bs-target="#' + id + '"]');
+                if (toggle) toggle.setAttribute('aria-expanded', 'true');
+            });
+        });
+    </script>
 </body>
 </html>

@@ -5,29 +5,7 @@
 @section('page-title', 'Kelola Users')
 
 @section('sidebar')
-    <div class="admin-nav-section">Dashboard</div>
-    <a href="{{ route('dashboard.super-admin') }}" class="admin-nav-item">
-        <span class="admin-nav-icon">📊</span> Overview
-    </a>
-    
-    <div class="admin-nav-section">Manajemen</div>
-    <a href="{{ route('admin.users') }}" class="admin-nav-item active">
-        <span class="admin-nav-icon">👥</span> Kelola Users
-    </a>
-    <a href="{{ route('admin.umkms') }}" class="admin-nav-item">
-        <span class="admin-nav-icon">🏪</span> Kelola UMKM
-    </a>
-    <a href="{{ route('admin.categories') }}" class="admin-nav-item">
-        <span class="admin-nav-icon">📁</span> Kelola Kategori
-    </a>
-    
-    <div class="admin-nav-section">Lainnya</div>
-    <a href="{{ route('umkms.index') }}" class="admin-nav-item">
-        <span class="admin-nav-icon">🛍️</span> Lihat UMKM
-    </a>
-    <a href="{{ route('products.index') }}" class="admin-nav-item">
-        <span class="admin-nav-icon">📦</span> Lihat Produk
-    </a>
+    @include('partials.admin.sidebar-super-admin')
 @endsection
 
 @section('content')
