@@ -9,18 +9,17 @@ use Tests\TestCase;
 
 class SpreadsheetAnalyzerHeaderDetectionTest extends TestCase
 {
-    private string $tempFilePath;
+    private string $tempFileName;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $uniqueName = uniqid('test_template_', true).'.xlsx';
-        $this->tempFilePath = $uniqueName; // Path relative to storage/app/private
+        $this->tempFileName = uniqid('test_template_', true).'.xlsx';
     }
 
     protected function tearDown(): void
     {
-        $fullPath = storage_path('app/private/'.$this->tempFilePath);
+        $fullPath = storage_path('app/private/'.$this->tempFileName);
         if (file_exists($fullPath)) {
             unlink($fullPath);
         }
@@ -30,14 +29,12 @@ class SpreadsheetAnalyzerHeaderDetectionTest extends TestCase
     private function saveSpreadsheet(Spreadsheet $spreadsheet): void
     {
         $writer = new Xlsx($spreadsheet);
-        $fullPath = storage_path('app/private/'.$this->tempFilePath);
+        $fullPath = storage_path('app/private/'.$this->tempFileName);
         
         // Ensure directory exists
         $directory = dirname($fullPath);
-        if (! is_dir($directory)) {
-            if (! mkdir($directory, 0755, true) && ! is_dir($directory)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $directory));
-            }
+        if (! is_dir($directory) && ! mkdir($directory, 0755, true)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $directory));
         }
         
         $writer->save($fullPath);
@@ -91,7 +88,7 @@ class SpreadsheetAnalyzerHeaderDetectionTest extends TestCase
         $this->saveSpreadsheet($spreadsheet);
         
         $analyzer = new SpreadsheetAnalyzerService();
-        $result = $analyzer->analyze($this->tempFilePath);
+        $result = $analyzer->analyze($this->tempFileName);
 
         // Verify that headers are correctly detected
         $this->assertArrayHasKey('sheet_details', $result);
@@ -135,7 +132,7 @@ class SpreadsheetAnalyzerHeaderDetectionTest extends TestCase
         $this->saveSpreadsheet($spreadsheet);
         
         $analyzer = new SpreadsheetAnalyzerService();
-        $result = $analyzer->analyze($this->tempFilePath);
+        $result = $analyzer->analyze($this->tempFileName);
 
         // Verify that headers are correctly detected from row 1
         $sheetDetails = $result['sheet_details']['Worksheet'];
