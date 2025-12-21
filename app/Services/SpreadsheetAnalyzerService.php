@@ -76,6 +76,56 @@ class SpreadsheetAnalyzerService
     }
 
     /**
+     * Detect the row number where actual headers are located
+     */
+    protected function detectHeaderRow(Worksheet $sheet, int $highestColumnIndex): int
+    {
+        // Check first 10 rows to find the header row
+        $maxRowsToCheck = min(10, $sheet->getHighestRow());
+        
+        for ($row = 1; $row <= $maxRowsToCheck; $row++) {
+            $nonEmptyCount = 0;
+            $hasMultipleColumns = false;
+            $cellValues = [];
+            
+            // Collect values from this row
+            for ($col = 1; $col <= $highestColumnIndex; $col++) {
+                $cellValue = $this->getCellValue($sheet, $col, $row);
+                if ($cellValue !== null && $cellValue !== '') {
+                    $nonEmptyCount++;
+                    $cellValues[] = strtolower(trim((string) $cellValue));
+                }
+            }
+            
+            // Header row should have multiple non-empty cells
+            $hasMultipleColumns = $nonEmptyCount >= 3;
+            
+            // Check if this row looks like a header row by checking for common header keywords
+            $headerKeywords = ['nama', 'name', 'tipe', 'type', 'kategori', 'category', 'harga', 'price', 
+                              'stok', 'stock', 'deskripsi', 'description', 'status', 'jumlah', 'qty', 
+                              'quantity', 'tanggal', 'date'];
+            
+            $hasHeaderKeywords = false;
+            foreach ($cellValues as $value) {
+                foreach ($headerKeywords as $keyword) {
+                    if (str_contains($value, $keyword)) {
+                        $hasHeaderKeywords = true;
+                        break 2;
+                    }
+                }
+            }
+            
+            // If this row has multiple columns and contains header-like keywords, it's likely the header
+            if ($hasMultipleColumns && $hasHeaderKeywords) {
+                return $row;
+            }
+        }
+        
+        // Default to row 1 if no clear header row found
+        return 1;
+    }
+
+    /**
      * Analyze each sheet in detail
      */
     protected function analyzeSheets(): array
@@ -88,22 +138,25 @@ class SpreadsheetAnalyzerService
             $highestColumn = $sheet->getHighestColumn();
             $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
 
-            // Get headers (first row)
+            // Detect header row (may not be row 1 if there's metadata at the top)
+            $headerRow = $this->detectHeaderRow($sheet, $highestColumnIndex);
+
+            // Get headers from detected header row
             $headers = [];
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $cellValue = $this->getCellValue($sheet, $col, 1);
+                $cellValue = $this->getCellValue($sheet, $col, $headerRow);
                 $headers[] = $cellValue;
             }
 
-            // Analyze columns
-            $columns = $this->analyzeColumns($sheet, $headers, $highestRow, $highestColumnIndex);
+            // Analyze columns (data starts after header row)
+            $columns = $this->analyzeColumns($sheet, $headers, $highestRow, $highestColumnIndex, $headerRow);
 
             // Detect business function
             $businessFunction = $this->detectBusinessFunction($sheetName, $headers);
 
             $sheetsAnalysis[$sheetName] = [
                 'nama_sheet' => $sheetName,
-                'jumlah_baris' => $highestRow - 1, // Excluding header
+                'jumlah_baris' => $highestRow - $headerRow, // Excluding header and metadata
                 'jumlah_kolom' => $highestColumnIndex,
                 'headers' => $headers,
                 'fungsi_bisnis' => $businessFunction,
@@ -118,17 +171,18 @@ class SpreadsheetAnalyzerService
     /**
      * Analyze columns with data type detection
      */
-    protected function analyzeColumns(Worksheet $sheet, array $headers, int $highestRow, int $highestColumnIndex): array
+    protected function analyzeColumns(Worksheet $sheet, array $headers, int $highestRow, int $highestColumnIndex, int $headerRow = 1): array
     {
         $columns = [];
         $sampleRows = min($highestRow, self::SAMPLE_ROWS_LIMIT);
+        $dataStartRow = $headerRow + 1; // Data starts after header row
 
         for ($col = 1; $col <= $highestColumnIndex; $col++) {
             $headerName = $headers[$col - 1] ?? "Kolom $col";
             $values = [];
             $emptyCount = 0;
 
-            for ($row = 2; $row <= $sampleRows; $row++) {
+            for ($row = $dataStartRow; $row <= $sampleRows; $row++) {
                 $value = $this->getCellValue($sheet, $col, $row);
 
                 if ($value === null || $value === '') {
@@ -141,12 +195,13 @@ class SpreadsheetAnalyzerService
             $dataType = $this->detectDataType($values, $headerName);
             $explanation = $this->getColumnExplanation($headerName, $dataType);
 
+            $totalDataRows = $sampleRows - $headerRow; // Total data rows in the sample
             $columns[] = [
                 'nama_kolom' => $headerName,
                 'tipe_data' => $dataType,
                 'penjelasan' => $explanation,
                 'jumlah_kosong' => $emptyCount,
-                'persentase_kosong' => $sampleRows > 1 ? round(($emptyCount / ($sampleRows - 1)) * 100, 1) : 0,
+                'persentase_kosong' => $totalDataRows > 0 ? round(($emptyCount / $totalDataRows) * 100, 1) : 0,
                 'contoh_nilai' => array_slice($values, 0, 3),
             ];
         }
@@ -394,9 +449,12 @@ class SpreadsheetAnalyzerService
             $highestColumn = $sheet->getHighestColumn();
             $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
 
+            // Detect header row for this sheet
+            $headerRow = $this->detectHeaderRow($sheet, $highestColumnIndex);
+
             $headers = [];
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $cellValue = $this->getCellValue($sheet, $col, 1);
+                $cellValue = $this->getCellValue($sheet, $col, $headerRow);
                 if ($cellValue) {
                     $headers[] = strtolower($cellValue);
                 }
@@ -444,10 +502,13 @@ class SpreadsheetAnalyzerService
 
             $sheetProblems = [];
 
-            // Get headers
+            // Detect header row for this sheet
+            $headerRow = $this->detectHeaderRow($sheet, $highestColumnIndex);
+
+            // Get headers from detected header row
             $headers = [];
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $headers[$col] = $this->getCellValue($sheet, $col, 1);
+                $headers[$col] = $this->getCellValue($sheet, $col, $headerRow);
             }
 
             // Check for empty columns
@@ -458,8 +519,9 @@ class SpreadsheetAnalyzerService
 
             $rowHashes = [];
             $sampleRows = min($highestRow, self::DUPLICATE_CHECK_LIMIT);
+            $dataStartRow = $headerRow + 1; // Data starts after header
 
-            for ($row = 2; $row <= $sampleRows; $row++) {
+            for ($row = $dataStartRow; $row <= $sampleRows; $row++) {
                 $rowHash = '';
 
                 for ($col = 1; $col <= $highestColumnIndex; $col++) {
@@ -505,13 +567,14 @@ class SpreadsheetAnalyzerService
             // Check empty column ratio
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
                 $emptyCount = 0;
-                for ($row = 2; $row <= $sampleRows; $row++) {
+                for ($row = $dataStartRow; $row <= $sampleRows; $row++) {
                     $value = $this->getCellValue($sheet, $col, $row);
                     if ($value === null || $value === '') {
                         $emptyCount++;
                     }
                 }
-                $emptyRatio = ($sampleRows > 1) ? ($emptyCount / ($sampleRows - 1)) * 100 : 0;
+                $totalDataRows = $sampleRows - $headerRow;
+                $emptyRatio = ($totalDataRows > 0) ? ($emptyCount / $totalDataRows) * 100 : 0;
 
                 if ($emptyRatio > 50) {
                     $emptyColumns[] = [
@@ -584,10 +647,13 @@ class SpreadsheetAnalyzerService
             $highestColumn = $sheet->getHighestColumn();
             $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
 
-            // Get headers
+            // Detect header row for this sheet
+            $headerRow = $this->detectHeaderRow($sheet, $highestColumnIndex);
+
+            // Get headers from detected header row
             $headers = [];
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $headers[$col] = $this->getCellValue($sheet, $col, 1);
+                $headers[$col] = $this->getCellValue($sheet, $col, $headerRow);
             }
 
             $sheetInsights = [];
@@ -617,8 +683,9 @@ class SpreadsheetAnalyzerService
                 }
             }
 
-            // Collect data
-            for ($row = 2; $row <= $highestRow; $row++) {
+            // Collect data (start from row after header)
+            $dataStartRow = $headerRow + 1;
+            for ($row = $dataStartRow; $row <= $highestRow; $row++) {
                 if ($dateColumn) {
                     $dateValue = $this->getCellValue($sheet, $dateColumn, $row);
                     if (is_numeric($dateValue) && $dateValue > 0) {
@@ -688,8 +755,8 @@ class SpreadsheetAnalyzerService
             $sheetInsights[] = [
                 'icon' => '📊',
                 'judul' => 'Jumlah Data',
-                'nilai' => ($highestRow - 1).' baris data',
-                'deskripsi' => 'Total baris data (tidak termasuk header).',
+                'nilai' => ($highestRow - $headerRow).' baris data',
+                'deskripsi' => 'Total baris data (tidak termasuk header dan metadata).',
             ];
 
             if (! empty($sheetInsights)) {
@@ -718,13 +785,16 @@ class SpreadsheetAnalyzerService
 
             $sheetRecs = [];
 
-            // Check headers
+            // Detect header row for this sheet
+            $headerRow = $this->detectHeaderRow($sheet, $highestColumnIndex);
+
+            // Check headers from detected header row
             $headers = [];
             $emptyHeaders = 0;
             $unclearHeaders = 0;
 
             for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                $header = $this->getCellValue($sheet, $col, 1);
+                $header = $this->getCellValue($sheet, $col, $headerRow);
                 $headers[] = $header;
 
                 if ($header === null || $header === '') {
