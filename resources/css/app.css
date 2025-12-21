@@ -1,3 +1,6 @@
+/* Import Inter font for Xero-style UI */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @import 'tailwindcss';
 
 @import 'bootstrap/dist/css/bootstrap.min.css';
@@ -12,9 +15,6 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
-
-/* Import Inter font for Xero-style UI */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
