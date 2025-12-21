@@ -14,6 +14,146 @@
         </div>
     @endif
 
+    {{-- Financial Overview Dashboard --}}
+    @if($financialOverview)
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h5 class="mb-0">📊 Ringkasan Keuangan & Aset</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            {{-- Total Nilai Aset --}}
+                            <div class="col-md-4">
+                                <div class="card bg-success text-white h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <span class="display-4">💎</span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="card-subtitle mb-2 text-white-50">Total Nilai Aset</h6>
+                                                <h3 class="card-title mb-0">Rp {{ number_format($financialOverview['overview']['total_asset_value'], 0, ',', '.') }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{-- Total Nilai Barang Stok --}}
+                            <div class="col-md-4">
+                                <div class="card bg-info text-white h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <span class="display-4">📦</span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="card-subtitle mb-2 text-white-50">Total Nilai Barang Stok</h6>
+                                                <h3 class="card-title mb-0">Rp {{ number_format($financialOverview['overview']['total_stock_value'], 0, ',', '.') }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{-- Saldo Bersih --}}
+                            <div class="col-md-4">
+                                <div class="card {{ $financialOverview['overview']['net_balance'] >= 0 ? 'bg-primary' : 'bg-danger' }} text-white h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <span class="display-4">💰</span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="card-subtitle mb-2 text-white-50">Saldo Bersih</h6>
+                                                <h3 class="card-title mb-0">Rp {{ number_format($financialOverview['overview']['net_balance'], 0, ',', '.') }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{-- Total Pemasukan --}}
+                            <div class="col-md-6">
+                                <div class="card bg-light border-success border-2 h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <span class="display-5">📈</span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="card-subtitle mb-2 text-success">Total Pemasukan</h6>
+                                                <h4 class="card-title mb-0 text-success">Rp {{ number_format($financialOverview['overview']['total_income'], 0, ',', '.') }}</h4>
+                                                <small class="text-muted">{{ $financialOverview['statistics']['income_count'] }} transaksi</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{-- Total Pengeluaran --}}
+                            <div class="col-md-6">
+                                <div class="card bg-light border-danger border-2 h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <span class="display-5">📉</span>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="card-subtitle mb-2 text-danger">Total Pengeluaran</h6>
+                                                <h4 class="card-title mb-0 text-danger">Rp {{ number_format($financialOverview['overview']['total_expense'], 0, ',', '.') }}</h4>
+                                                <small class="text-muted">{{ $financialOverview['statistics']['expense_count'] }} transaksi</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Monthly Trends Chart --}}
+                        @if(!empty($financialOverview['monthly_trends']))
+                            <div class="mt-4">
+                                <h6 class="fw-bold mb-3">📊 Tren 6 Bulan Terakhir</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Bulan</th>
+                                                <th class="text-end">Pemasukan</th>
+                                                <th class="text-end">Pengeluaran</th>
+                                                <th class="text-end">Saldo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($financialOverview['monthly_trends'] as $trend)
+                                                <tr>
+                                                    <td>{{ date('M Y', strtotime($trend['month'])) }}</td>
+                                                    <td class="text-end text-success">Rp {{ number_format($trend['income'], 0, ',', '.') }}</td>
+                                                    <td class="text-end text-danger">Rp {{ number_format($trend['expense'], 0, ',', '.') }}</td>
+                                                    <td class="text-end {{ $trend['balance'] >= 0 ? 'text-primary' : 'text-danger' }} fw-bold">
+                                                        Rp {{ number_format($trend['balance'], 0, ',', '.') }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                        
+                        @if($financialOverview['statistics']['transactions_with_errors'] > 0)
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <strong>⚠️ Perhatian:</strong> Terdapat {{ $financialOverview['statistics']['transactions_with_errors'] }} transaksi dengan kesalahan validasi yang tetap diimpor.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="row">
         {{-- Left Column: Upload & File List --}}
         <div class="col-md-4">
@@ -25,7 +165,7 @@
                 <div class="card-body">
                     <form wire:submit.prevent="uploadAndAnalyze">
                         <div class="mb-3">
-                            <label for="spreadsheetFile" class="form-label">Pilih File</label>
+                            <label for="spreadsheetFile" class="form-label">Pilih File (Analisis Data)</label>
                             <input
                                 type="file"
                                 class="form-control @error('spreadsheetFile') is-invalid @enderror"
@@ -56,6 +196,55 @@
                                 Menganalisis...
                             @else
                                 🔍 Upload & Analisis
+                            @endif
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            {{-- Multiple Files Upload for Financial Data --}}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">💰 Upload Data Keuangan</h5>
+                </div>
+                <div class="card-body">
+                    <form wire:submit.prevent="uploadAndProcessFinancials">
+                        <div class="mb-3">
+                            <label for="spreadsheetFiles" class="form-label">Pilih File (Bisa Banyak)</label>
+                            <input
+                                type="file"
+                                class="form-control @error('spreadsheetFiles.*') is-invalid @enderror"
+                                id="spreadsheetFiles"
+                                wire:model="spreadsheetFiles"
+                                accept=".xlsx,.xls,.csv,.ods"
+                                multiple
+                            >
+                            @error('spreadsheetFiles.*')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">
+                                Upload 1 atau lebih file. Data dari semua file akan digabungkan.
+                                <br>Pastikan file memiliki sheet "Pemasukan & Pengeluaran".
+                            </div>
+                        </div>
+
+                        <div wire:loading wire:target="spreadsheetFiles" class="text-muted mb-3">
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            Mengupload file...
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn btn-success w-100"
+                            wire:loading.attr="disabled"
+                            wire:target="uploadAndProcessFinancials"
+                            @if($isProcessingFinancials) disabled @endif
+                        >
+                            @if($isProcessingFinancials)
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                                Memproses...
+                            @else
+                                💾 Upload & Proses Data Keuangan
                             @endif
                         </button>
                     </form>
