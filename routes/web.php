@@ -88,12 +88,29 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/dashboard/super-admin', [DashboardController::class, 'superAdmin'])->name('dashboard.super-admin');
         Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+        
+        // User Management
         Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
+        Route::get('/admin/users/create', [AdminController::class, 'createUser'])->name('admin.users.create');
+        Route::post('/admin/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
+        Route::get('/admin/users/{id}/edit', [AdminController::class, 'editUser'])->name('admin.users.edit');
+        Route::put('/admin/users/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+        Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
+        
+        // UMKM Management
         Route::get('/admin/umkms', [AdminController::class, 'umkms'])->name('admin.umkms');
         Route::post('/admin/umkms/{id}/approve', [AdminController::class, 'approveUmkm'])->name('admin.umkms.approve');
         Route::post('/admin/umkms/{id}/reject', [AdminController::class, 'rejectUmkm'])->name('admin.umkms.reject');
+        Route::delete('/admin/umkms/{id}', [AdminController::class, 'deleteUmkm'])->name('admin.umkms.destroy');
+        
+        // Category Management
         Route::get('/admin/categories', [AdminController::class, 'categories'])->name('admin.categories');
         Route::post('/admin/categories', [AdminController::class, 'storeCategory'])->name('admin.categories.store');
+        Route::put('/admin/categories/{id}', [AdminController::class, 'updateCategory'])->name('admin.categories.update');
         Route::delete('/admin/categories/{id}', [AdminController::class, 'deleteCategory'])->name('admin.categories.destroy');
+        
+        // Product Management
+        Route::get('/admin/products', [AdminController::class, 'products'])->name('admin.products');
+        Route::delete('/admin/products/{id}', [AdminController::class, 'deleteProduct'])->name('admin.products.destroy');
     });
 });

@@ -87,11 +87,111 @@ class AdminController extends Controller
         return back()->with('success', 'Kategori berhasil ditambahkan.');
     }
 
+    public function updateCategory(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $category = Category::findOrFail($id);
+        $category->update($validated);
+
+        return back()->with('success', 'Kategori berhasil diperbarui.');
+    }
+
     public function deleteCategory($id)
     {
         $category = Category::findOrFail($id);
         $category->delete();
 
         return back()->with('success', 'Kategori berhasil dihapus.');
+    }
+
+    // User Management
+    public function createUser()
+    {
+        return view('admin.users-create');
+    }
+
+    public function storeUser(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:user,admin_toko,super_admin',
+        ]);
+
+        $validated['password'] = bcrypt($validated['password']);
+        User::create($validated);
+
+        return redirect()->route('admin.users')->with('success', 'User berhasil ditambahkan.');
+    }
+
+    public function editUser($id)
+    {
+        $user = User::findOrFail($id);
+        return view('admin.users-edit', compact('user'));
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,'.$id,
+            'role' => 'required|in:user,admin_toko,super_admin',
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return redirect()->route('admin.users')->with('success', 'User berhasil diperbarui.');
+    }
+
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        
+        // Prevent deleting own account
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'User berhasil dihapus.');
+    }
+
+    // UMKM Management
+    public function deleteUmkm($id)
+    {
+        $umkm = Umkm::findOrFail($id);
+        $umkm->delete();
+
+        return back()->with('success', 'UMKM berhasil dihapus.');
+    }
+
+    // Product Management
+    public function products()
+    {
+        $products = Product::with(['umkm', 'category'])->latest()->paginate(20);
+        return view('admin.products', compact('products'));
+    }
+
+    public function deleteProduct($id)
+    {
+        $product = Product::findOrFail($id);
+        $product->delete();
+
+        return back()->with('success', 'Produk berhasil dihapus.');
     }
 }
