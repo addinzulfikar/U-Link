@@ -59,11 +59,15 @@
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-outline-primary">Edit</a>
-                                        <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Yakin ingin menghapus user ini?')">Hapus</button>
-                                        </form>
+                                        @if($user->id !== auth()->id())
+                                            <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Yakin ingin menghapus user ini?')">Hapus</button>
+                                            </form>
+                                        @else
+                                            <button type="button" class="btn btn-outline-secondary" disabled title="Tidak dapat menghapus akun sendiri" aria-label="Tidak dapat menghapus akun sendiri">Hapus</button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Umkm;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -32,8 +33,7 @@ class AdminController extends Controller
 
     public function users()
     {
-        $users = User::whereIn('role', [User::ROLE_USER, User::ROLE_ADMIN_TOKO])
-            ->latest()
+        $users = User::latest()
             ->paginate(20);
 
         return view('admin.users', compact('users'));
@@ -95,6 +95,12 @@ class AdminController extends Controller
         ]);
 
         $category = Category::findOrFail($id);
+        
+        // Regenerate slug if name changed
+        if ($category->name !== $validated['name']) {
+            $validated['slug'] = Str::slug($validated['name']);
+        }
+        
         $category->update($validated);
 
         return back()->with('success', 'Kategori berhasil diperbarui.');
