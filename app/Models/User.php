@@ -160,7 +160,8 @@ class User extends Authenticatable
         // Regular user can only see their assigned UMKM's admin and super admins
         if ($this->isUser()) {
             if (!$this->umkm_id) {
-                return collect();
+                // Users without UMKM can still chat with super admins
+                return User::where('role', self::ROLE_SUPER_ADMIN)->get();
             }
             
             return User::where(function ($query) {
@@ -175,7 +176,12 @@ class User extends Authenticatable
         }
 
         // Admin toko can see users under their UMKM and super admins
-        if ($this->isAdminToko() && $this->umkm) {
+        if ($this->isAdminToko()) {
+            if (!$this->umkm) {
+                // Admin toko without UMKM can still chat with super admins
+                return User::where('role', self::ROLE_SUPER_ADMIN)->get();
+            }
+            
             return User::where(function ($query) {
                 $query->where('role', self::ROLE_SUPER_ADMIN)
                     ->orWhere(function ($q) {
