@@ -12,6 +12,20 @@ class ChatAuthorizationTest extends TestCase
     use RefreshDatabase;
 
     /**
+     * Helper method to create an UMKM with an admin
+     */
+    private function createUmkmWithAdmin(): array
+    {
+        $adminToko = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
+        $umkm = Umkm::factory()->create([
+            'owner_user_id' => $adminToko->id,
+            'status' => Umkm::STATUS_APPROVED,
+        ]);
+
+        return ['admin' => $adminToko, 'umkm' => $umkm];
+    }
+
+    /**
      * Test that super admin can chat with everyone
      */
     public function test_super_admin_can_chat_with_all_users(): void
@@ -45,11 +59,9 @@ class ChatAuthorizationTest extends TestCase
     public function test_user_can_chat_with_their_umkm_admin(): void
     {
         // Create an UMKM with an admin
-        $adminToko = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm = Umkm::factory()->create([
-            'owner_user_id' => $adminToko->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data = $this->createUmkmWithAdmin();
+        $adminToko = $data['admin'];
+        $umkm = $data['umkm'];
 
         // Create a user assigned to this UMKM
         $user = User::factory()->create([
@@ -66,18 +78,12 @@ class ChatAuthorizationTest extends TestCase
     public function test_user_cannot_chat_with_other_umkm_admin(): void
     {
         // Create UMKM 1 with admin
-        $adminToko1 = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm1 = Umkm::factory()->create([
-            'owner_user_id' => $adminToko1->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data1 = $this->createUmkmWithAdmin();
+        $umkm1 = $data1['umkm'];
 
         // Create UMKM 2 with admin
-        $adminToko2 = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm2 = Umkm::factory()->create([
-            'owner_user_id' => $adminToko2->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data2 = $this->createUmkmWithAdmin();
+        $adminToko2 = $data2['admin'];
 
         // Create a user assigned to UMKM 1
         $user = User::factory()->create([
@@ -107,11 +113,9 @@ class ChatAuthorizationTest extends TestCase
     public function test_admin_toko_can_chat_with_their_umkm_users(): void
     {
         // Create an UMKM with an admin
-        $adminToko = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm = Umkm::factory()->create([
-            'owner_user_id' => $adminToko->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data = $this->createUmkmWithAdmin();
+        $adminToko = $data['admin'];
+        $umkm = $data['umkm'];
 
         // Create users assigned to this UMKM
         $user1 = User::factory()->create([
@@ -133,18 +137,12 @@ class ChatAuthorizationTest extends TestCase
     public function test_admin_toko_cannot_chat_with_other_umkm_users(): void
     {
         // Create UMKM 1 with admin
-        $adminToko1 = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm1 = Umkm::factory()->create([
-            'owner_user_id' => $adminToko1->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data1 = $this->createUmkmWithAdmin();
+        $adminToko1 = $data1['admin'];
 
         // Create UMKM 2 with admin
-        $adminToko2 = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm2 = Umkm::factory()->create([
-            'owner_user_id' => $adminToko2->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data2 = $this->createUmkmWithAdmin();
+        $umkm2 = $data2['umkm'];
 
         // Create a user assigned to UMKM 2
         $user = User::factory()->create([
@@ -211,11 +209,9 @@ class ChatAuthorizationTest extends TestCase
     public function test_get_allowed_chat_users_for_regular_user(): void
     {
         // Create an UMKM with an admin
-        $adminToko = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm = Umkm::factory()->create([
-            'owner_user_id' => $adminToko->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data = $this->createUmkmWithAdmin();
+        $adminToko = $data['admin'];
+        $umkm = $data['umkm'];
 
         // Create a user assigned to this UMKM
         $user = User::factory()->create([
@@ -246,11 +242,9 @@ class ChatAuthorizationTest extends TestCase
     public function test_get_allowed_chat_users_for_admin_toko(): void
     {
         // Create an UMKM with an admin
-        $adminToko = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm = Umkm::factory()->create([
-            'owner_user_id' => $adminToko->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data = $this->createUmkmWithAdmin();
+        $adminToko = $data['admin'];
+        $umkm = $data['umkm'];
 
         // Create users assigned to this UMKM
         $user1 = User::factory()->create([
@@ -308,11 +302,9 @@ class ChatAuthorizationTest extends TestCase
     public function test_chat_authorization_is_bidirectional(): void
     {
         // Create an UMKM with an admin
-        $adminToko = User::factory()->create(['role' => User::ROLE_ADMIN_TOKO]);
-        $umkm = Umkm::factory()->create([
-            'owner_user_id' => $adminToko->id,
-            'status' => Umkm::STATUS_APPROVED,
-        ]);
+        $data = $this->createUmkmWithAdmin();
+        $adminToko = $data['admin'];
+        $umkm = $data['umkm'];
 
         // Create a user assigned to this UMKM
         $user = User::factory()->create([
