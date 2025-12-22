@@ -51,7 +51,7 @@
                                         <a class="dropdown-item" style="font-size: 0.875rem; color: #6B7280;" href="{{ route('products.create') }}">Tambah Produk/Jasa</a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" style="font-size: 0.875rem; color: #6B7280;" href="{{ route('spreadsheet.analyzer') }}">Analisis Spreadsheet</a>
+                                        <a class="dropdown-item" style="font-size: 0.875rem; color: #6B7280;" href="{{ route('spreadsheet.analyzer') }}">Input Data</a>
                                     </li>
                                 @endif
 
@@ -116,7 +116,7 @@
                                     <li><hr class="dropdown-divider" style="border-color: #E5E7EB;"></li>
                                     <li><a class="dropdown-item" style="font-size: 0.875rem; color: #6B7280;" href="{{ route('umkm.manage') }}">Kelola UMKM</a></li>
                                     <li><a class="dropdown-item" style="font-size: 0.875rem; color: #6B7280;" href="{{ route('products.create') }}">Tambah Produk/Jasa</a></li>
-                                    <li><a class="dropdown-item" style="font-size: 0.875rem; color: #6B7280;" href="{{ route('spreadsheet.analyzer') }}">Analisis Spreadsheet</a></li>
+                                    <li><a class="dropdown-item" style="font-size: 0.875rem; color: #6B7280;" href="{{ route('spreadsheet.analyzer') }}">Input Data</a></li>
                                 @endif
 
                                 @if($user->isSuperAdmin())

@@ -29,7 +29,7 @@
             </a>
         @endif
         <a href="{{ route('spreadsheet.analyzer') }}" class="admin-nav-item {{ request()->routeIs('spreadsheet.analyzer') ? 'active' : '' }}">
-            <span class="admin-nav-icon">📈</span> Analisis Spreadsheet
+            <span class="admin-nav-icon">📈</span> Input Data
         </a>
     </div>
 </div>
