@@ -268,6 +268,14 @@
         </main>
     </div>
 
+    @if(Auth::check() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdminToko()))
+        <a
+            href="{{ url('/' . config('chatify.routes.prefix')) }}"
+            class="btn btn-outline-secondary position-fixed bottom-0 end-0 m-3"
+            onclick="window.open(this.href, 'chatify', 'width=1100,height=700'); return false;"
+        >💬 Chat</a>
+    @endif
+
     @livewireScripts
 
     <script>

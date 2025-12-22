@@ -25,9 +25,9 @@ return [
         'custom' => env('CHATIFY_CUSTOM_ROUTES', false),
         'prefix' => env('CHATIFY_ROUTES_PREFIX', 'chatify'),
         'middleware' => env('CHATIFY_ROUTES_MIDDLEWARE', ['web','auth','chatify.role']),
-        // Note: namespace is kept as Chatify\Http\Controllers for fallback compatibility
-        // Routes explicitly reference App\Http\Controllers\Chatify\MessagesController
-        'namespace' => env('CHATIFY_ROUTES_NAMESPACE', 'Chatify\Http\Controllers'),
+        // Route group namespace used by Chatify's bundled routes.
+        // We default to the app override controller to support role filtering and Postgres-safe behavior.
+        'namespace' => env('CHATIFY_ROUTES_NAMESPACE', 'App\Http\Controllers\Chatify'),
     ],
     'api_routes' => [
         'prefix' => env('CHATIFY_API_ROUTES_PREFIX', 'chatify/api'),

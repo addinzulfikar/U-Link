@@ -125,20 +125,15 @@ class User extends Authenticatable
             return true;
         }
 
-        // Regular user can only chat with their assigned UMKM's admin
+        // Regular user can chat with any store admin (and super admin via rule above)
         if ($this->isUser()) {
-            return $targetUser->isAdminToko() 
-                && $this->umkm_id 
-                && $targetUser->umkm 
-                && $this->umkm_id === $targetUser->umkm->id;
+            return $targetUser->isAdminToko();
         }
 
-        // Admin toko can chat with users under their UMKM
+        // Admin toko can reply/chat with users
         if ($this->isAdminToko()) {
             if ($targetUser->isUser()) {
-                return $this->umkm 
-                    && $targetUser->umkm_id 
-                    && $this->umkm->id === $targetUser->umkm_id;
+                return true;
             }
             // Admin toko cannot chat with other admin toko
             return false;
@@ -157,38 +152,14 @@ class User extends Authenticatable
             return User::where('id', '!=', $this->id)->get();
         }
 
-        // Regular user can only see their assigned UMKM's admin and super admins
+        // Regular user can see all store admins + super admins
         if ($this->isUser()) {
-            if (!$this->umkm_id) {
-                // Users without UMKM can still chat with super admins
-                return User::where('role', self::ROLE_SUPER_ADMIN)->get();
-            }
-            
-            return User::where(function ($query) {
-                $query->where('role', self::ROLE_SUPER_ADMIN)
-                    ->orWhere(function ($q) {
-                        $q->where('role', self::ROLE_ADMIN_TOKO)
-                          ->whereHas('umkm', function ($umkmQuery) {
-                              $umkmQuery->where('id', $this->umkm_id);
-                          });
-                    });
-            })->get();
+            return User::whereIn('role', [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN_TOKO])->get();
         }
 
-        // Admin toko can see users under their UMKM and super admins
+        // Admin toko can see all users + super admins
         if ($this->isAdminToko()) {
-            if (!$this->umkm) {
-                // Admin toko without UMKM can still chat with super admins
-                return User::where('role', self::ROLE_SUPER_ADMIN)->get();
-            }
-            
-            return User::where(function ($query) {
-                $query->where('role', self::ROLE_SUPER_ADMIN)
-                    ->orWhere(function ($q) {
-                        $q->where('role', self::ROLE_USER)
-                          ->where('umkm_id', $this->umkm->id);
-                    });
-            })->get();
+            return User::whereIn('role', [self::ROLE_SUPER_ADMIN, self::ROLE_USER])->get();
         }
 
         return collect();

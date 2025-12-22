@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::connection()->getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE public.users ADD COLUMN IF NOT EXISTS active_status boolean NOT NULL DEFAULT false');
-            DB::statement("ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar varchar(255) NOT NULL DEFAULT 'avatar.png'");
-            DB::statement('ALTER TABLE public.users ADD COLUMN IF NOT EXISTS dark_mode boolean NOT NULL DEFAULT false');
-            DB::statement('ALTER TABLE public.users ADD COLUMN IF NOT EXISTS messenger_color varchar(255) NULL');
+            DB::statement('ALTER TABLE users ADD COLUMN IF NOT EXISTS active_status boolean NOT NULL DEFAULT false');
+            DB::statement("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar varchar(255) NOT NULL DEFAULT 'avatar.png'");
+            DB::statement('ALTER TABLE users ADD COLUMN IF NOT EXISTS dark_mode boolean NOT NULL DEFAULT false');
+            DB::statement('ALTER TABLE users ADD COLUMN IF NOT EXISTS messenger_color varchar(255) NULL');
 
             DB::statement(
-                'CREATE TABLE IF NOT EXISTS public.ch_messages ('
+                'CREATE TABLE IF NOT EXISTS ch_messages ('
                 .'id uuid PRIMARY KEY, '
                 .'from_id bigint NOT NULL, '
                 .'to_id bigint NOT NULL, '
@@ -31,7 +31,7 @@ return new class extends Migration
             );
 
             DB::statement(
-                'CREATE TABLE IF NOT EXISTS public.ch_favorites ('
+                'CREATE TABLE IF NOT EXISTS ch_favorites ('
                 .'id uuid PRIMARY KEY, '
                 .'user_id bigint NOT NULL, '
                 .'favorite_id bigint NOT NULL, '
@@ -83,13 +83,13 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::connection()->getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE public.users DROP COLUMN IF EXISTS active_status');
-            DB::statement('ALTER TABLE public.users DROP COLUMN IF EXISTS avatar');
-            DB::statement('ALTER TABLE public.users DROP COLUMN IF EXISTS dark_mode');
-            DB::statement('ALTER TABLE public.users DROP COLUMN IF EXISTS messenger_color');
+            DB::statement('ALTER TABLE users DROP COLUMN IF EXISTS active_status');
+            DB::statement('ALTER TABLE users DROP COLUMN IF EXISTS avatar');
+            DB::statement('ALTER TABLE users DROP COLUMN IF EXISTS dark_mode');
+            DB::statement('ALTER TABLE users DROP COLUMN IF EXISTS messenger_color');
 
-            DB::statement('DROP TABLE IF EXISTS public.ch_favorites');
-            DB::statement('DROP TABLE IF EXISTS public.ch_messages');
+            DB::statement('DROP TABLE IF EXISTS ch_favorites');
+            DB::statement('DROP TABLE IF EXISTS ch_messages');
 
             return;
         }

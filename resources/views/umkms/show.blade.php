@@ -28,12 +28,21 @@
                         </div>
                         @auth
                             @if(Auth::user()->isUser())
-                                <form method="POST" action="{{ route('favorites.toggle', $umkm->id) }}">
-                                    @csrf
-                                    <button type="submit" class="btn btn-{{ $isFavorited ? 'danger' : 'outline-danger' }}">
-                                        {{ $isFavorited ? '❤️ Favorit' : '🤍 Tambah Favorit' }}
-                                    </button>
-                                </form>
+                                <div class="d-flex gap-2">
+                                    @if($umkm->owner_user_id)
+                                        <a
+                                            href="{{ url('/' . config('chatify.routes.prefix') . '/' . $umkm->owner_user_id) }}"
+                                            class="btn btn-outline-primary"
+                                        >💬 Chat Admin</a>
+                                    @endif
+
+                                    <form method="POST" action="{{ route('favorites.toggle', $umkm->id) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-{{ $isFavorited ? 'danger' : 'outline-danger' }}">
+                                            {{ $isFavorited ? '❤️ Favorit' : '🤍 Tambah Favorit' }}
+                                        </button>
+                                    </form>
+                                </div>
                             @endif
                         @endauth
                     </div>

@@ -5,34 +5,56 @@ namespace App\Http\Controllers\Chatify;
 use Chatify\Http\Controllers\MessagesController as ChatifyMessagesController;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Chatify\Facades\ChatifyMessenger as Chatify;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
 
 class MessagesController extends ChatifyMessagesController
 {
+    private function pusherIsConfigured(): bool
+    {
+        $key = (string) config('chatify.pusher.key', '');
+        $secret = (string) config('chatify.pusher.secret', '');
+        $appId = (string) config('chatify.pusher.app_id', '');
+
+        return $key !== '' && $secret !== '' && $appId !== '';
+    }
+
     /**
      * Get contacts list - filtered by role
      */
     public function getContacts(Request $request)
     {
-        $user = auth()->user();
-        
-        // Get allowed users based on role
-        $allowedUsers = $user->getAllowedChatUsers();
-        $allowedUserIds = $allowedUsers->pluck('id')->toArray();
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        /** @var \App\Models\User $user */
 
-        // Get the original contacts from Chatify
-        $contacts = User::where('id', '!=', $user->id)
+        $allowedUserIds = $user->getAllowedChatUsers()->pluck('id')->all();
+
+        $contactsQuery = User::query()
+            ->where('id', '!=', $user->id)
             ->whereIn('id', $allowedUserIds)
-            ->get();
+            ->orderBy('name');
 
-        $contactsData = [];
+        $contacts = $contactsQuery->paginate($request->per_page ?? $this->perPage);
+        $contactsHtml = '';
 
-        foreach ($contacts as $contact) {
-            $contactsData[] = $this->getUserWithAvatar($contact);
+        foreach ($contacts->items() as $contact) {
+            $contactsHtml .= Chatify::getContactItem($contact);
+        }
+
+        if ($contacts->total() < 1) {
+            $contactsHtml = '<p class="message-hint center-el"><span>Your contact list is empty</span></p>';
         }
 
         return response()->json([
-            'contacts' => $contactsData,
+            'contacts' => $contactsHtml,
+            'total' => $contacts->total() ?? 0,
+            'last_page' => $contacts->lastPage() ?? 1,
         ]);
     }
 
@@ -46,7 +68,11 @@ class MessagesController extends ChatifyMessagesController
         ]);
 
         $userId = $request->input('id');
-        $currentUser = auth()->user();
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        /** @var \App\Models\User $currentUser */
         $targetUser = User::find($userId);
 
         // Authorization check
@@ -74,28 +100,95 @@ class MessagesController extends ChatifyMessagesController
         $request->validate([
             'id' => 'required|integer',
             'message' => 'nullable|string',
-            'attachment' => 'nullable|file',
+            // Chatify JS sends the attachment field as "file"
+            'file' => 'nullable|file',
         ]);
 
-        $recipientId = $request->input('id');
-        $currentUser = auth()->user();
+        $recipientId = (int) $request->input('id');
+        $currentUser = $request->user();
+        if (!$currentUser) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        /** @var \App\Models\User $currentUser */
         $recipient = User::find($recipientId);
 
-        // Authorization check
         if (!$recipient) {
-            return response()->json([
-                'error' => 'Penerima tidak ditemukan',
-            ], 404);
+            return response()->json(['error' => 'Penerima tidak ditemukan'], 404);
+        }
+        if (!$currentUser || !$currentUser->canChatWith($recipient)) {
+            return response()->json(['error' => 'Anda tidak memiliki akses untuk mengirim pesan ke pengguna ini'], 403);
         }
 
-        if (!$currentUser->canChatWith($recipient)) {
-            return response()->json([
-                'error' => 'Anda tidak memiliki akses untuk mengirim pesan ke pengguna ini',
-            ], 403);
+        // --- Copied from vendor Chatify send(), with Pusher guarded to prevent 500 when not configured.
+        $error = (object) [
+            'status' => 0,
+            'message' => null,
+        ];
+
+        $attachment = null;
+        $attachment_title = null;
+
+        if ($request->hasFile('file')) {
+            $allowed_images = Chatify::getAllowedImages();
+            $allowed_files  = Chatify::getAllowedFiles();
+            $allowed        = array_merge($allowed_images, $allowed_files);
+
+            $file = $request->file('file');
+            if ($file->getSize() < Chatify::getMaxUploadSize()) {
+                if (in_array(strtolower($file->extension()), $allowed)) {
+                    $attachment_title = $file->getClientOriginalName();
+                    $attachment = (string) Str::uuid() . '.' . $file->extension();
+                    $file->storeAs(
+                        config('chatify.attachments.folder'),
+                        $attachment,
+                        config('chatify.storage_disk_name')
+                    );
+                } else {
+                    $error->status = 1;
+                    $error->message = 'File extension not allowed!';
+                }
+            } else {
+                $error->status = 1;
+                $error->message = 'File size you are trying to upload is too large!';
+            }
         }
 
-        // Call parent method to send message
-        return parent::send($request);
+        if (!$error->status) {
+            $message = Chatify::newMessage([
+                'from_id' => $currentUser->id,
+                'to_id' => $recipientId,
+                'body' => htmlentities(trim((string) $request->input('message', '')), ENT_QUOTES, 'UTF-8'),
+                'attachment' => ($attachment) ? json_encode((object) [
+                    'new_name' => $attachment,
+                    'old_name' => htmlentities(trim((string) $attachment_title), ENT_QUOTES, 'UTF-8'),
+                ]) : null,
+            ]);
+
+            $messageData = Chatify::parseMessage($message);
+
+            if ($currentUser->id !== $recipientId && $this->pusherIsConfigured()) {
+                try {
+                    Chatify::push('private-chatify.' . $recipientId, 'messaging', [
+                        'from_id' => $currentUser->id,
+                        'to_id' => $recipientId,
+                        'message' => Chatify::messageCard($messageData, true),
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('Chatify Pusher push failed; realtime disabled for this request.', [
+                        'userId' => $currentUser->id,
+                        'to' => $recipientId,
+                        'exception' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        return Response::json([
+            'status' => '200',
+            'error' => $error,
+            'message' => Chatify::messageCard(@$messageData),
+            'tempID' => $request['temporaryMsgId'],
+        ]);
     }
 
     /**
@@ -103,47 +196,41 @@ class MessagesController extends ChatifyMessagesController
      */
     public function search(Request $request)
     {
-        $query = $request->input('query');
-        $user = auth()->user();
-        
-        // Get allowed users based on role
-        $allowedUsers = $user->getAllowedChatUsers();
-        $allowedUserIds = $allowedUsers->pluck('id')->toArray();
+        $input = trim((string) $request->input('input', $request->input('query', '')));
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        /** @var \App\Models\User $user */
+        $allowedUserIds = $user->getAllowedChatUsers()->pluck('id')->all();
 
-        // Search only among allowed contacts
-        $users = User::where('id', '!=', $user->id)
+        $recordsQuery = User::query()
+            ->where('id', '!=', $user->id)
             ->whereIn('id', $allowedUserIds)
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%");
-            })
-            ->get();
+            ->where(function ($q) use ($input) {
+                $q->where('name', 'like', "%{$input}%")
+                    ->orWhere('email', 'like', "%{$input}%");
+            });
 
-        $records = [];
-        foreach ($users as $searchUser) {
-            $records[] = $this->getUserWithAvatar($searchUser);
+        $records = $recordsQuery->paginate($request->per_page ?? $this->perPage);
+        $recordsHtml = '';
+
+        foreach ($records->items() as $record) {
+            $recordsHtml .= view('Chatify::layouts.listItem', [
+                'get' => 'search_item',
+                'user' => Chatify::getUserWithAvatar($record),
+            ])->render();
+        }
+
+        if ($records->total() < 1) {
+            $recordsHtml = '<p class="message-hint center-el"><span>Nothing to show.</span></p>';
         }
 
         return response()->json([
-            'records' => $records,
+            'records' => $recordsHtml,
+            'total' => $records->total(),
+            'last_page' => $records->lastPage(),
         ]);
-    }
-
-    /**
-     * Get user data with avatar
-     */
-    private function getUserWithAvatar($user)
-    {
-        $avatarFolder = config('chatify.user_avatar.folder');
-        $defaultAvatar = config('chatify.user_avatar.default');
-        $avatarPath = $user->avatar ?? $defaultAvatar;
-
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'avatar' => asset("storage/{$avatarFolder}/{$avatarPath}"),
-            'active_status' => $user->active_status ?? 0,
-        ];
     }
 
     /**
@@ -156,7 +243,11 @@ class MessagesController extends ChatifyMessagesController
         ]);
 
         $userId = $request->input('id');
-        $currentUser = auth()->user();
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        /** @var \App\Models\User $currentUser */
         $targetUser = User::find($userId);
 
         // Authorization check

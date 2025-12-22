@@ -15,26 +15,26 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::connection()->getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE public.users ADD COLUMN IF NOT EXISTS umkm_id bigint NULL');
-            DB::statement('CREATE INDEX IF NOT EXISTS users_umkm_id_index ON public.users (umkm_id)');
+            DB::statement('ALTER TABLE users ADD COLUMN IF NOT EXISTS umkm_id bigint NULL');
+            DB::statement('CREATE INDEX IF NOT EXISTS users_umkm_id_index ON users (umkm_id)');
 
             // If the column already existed, make sure existing values won't break FK creation.
             DB::statement(
-                'UPDATE public.users u '
+                'UPDATE users u '
                 .'SET umkm_id = NULL '
                 .'WHERE umkm_id IS NOT NULL '
-                .'AND NOT EXISTS (SELECT 1 FROM public.umkms x WHERE x.id = u.umkm_id)'
+                .'AND NOT EXISTS (SELECT 1 FROM umkms x WHERE x.id = u.umkm_id)'
             );
 
             DB::unprepared(
                 "DO $$\n"
                 ."BEGIN\n"
-                ."  IF to_regclass('public.umkms') IS NOT NULL AND NOT EXISTS (\n"
+                ."  IF to_regclass('umkms') IS NOT NULL AND NOT EXISTS (\n"
                 ."    SELECT 1 FROM pg_constraint WHERE conname = 'users_umkm_id_foreign'\n"
                 ."  ) THEN\n"
-                ."    ALTER TABLE public.users\n"
+                ."    ALTER TABLE users\n"
                 ."      ADD CONSTRAINT users_umkm_id_foreign\n"
-                ."      FOREIGN KEY (umkm_id) REFERENCES public.umkms(id) ON DELETE SET NULL;\n"
+                ."      FOREIGN KEY (umkm_id) REFERENCES umkms(id) ON DELETE SET NULL;\n"
                 ."  END IF;\n"
                 ."END\n"
                 ."$$;"
@@ -61,9 +61,9 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::connection()->getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE public.users DROP CONSTRAINT IF EXISTS users_umkm_id_foreign');
-            DB::statement('DROP INDEX IF EXISTS public.users_umkm_id_index');
-            DB::statement('ALTER TABLE public.users DROP COLUMN IF EXISTS umkm_id');
+            DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_umkm_id_foreign');
+            DB::statement('DROP INDEX IF EXISTS users_umkm_id_index');
+            DB::statement('ALTER TABLE users DROP COLUMN IF EXISTS umkm_id');
             return;
         }
 

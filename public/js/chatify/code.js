@@ -30,21 +30,60 @@ const setMessengerId = (id) => $("meta[name=id]").attr("content", id);
  * Pusher initialization
  *-------------------------------------------------------------
  */
-Pusher.logToConsole = chatify.pusher.debug;
-const pusher = new Pusher(chatify.pusher.key, {
-    encrypted: chatify.pusher.options.encrypted,
-    cluster: chatify.pusher.options.cluster,
-    wsHost: chatify.pusher.options.host,
-    wsPort: chatify.pusher.options.port,
-    wssPort: chatify.pusher.options.port,
-    forceTLS: chatify.pusher.options.useTLS,
-    authEndpoint: chatify.pusherAuthEndpoint,
-  auth: {
-    headers: {
-      "X-CSRF-TOKEN": csrfToken,
+function createPusherStub() {
+  const noop = function () {};
+  return {
+    subscribe: function () {
+      return {
+        bind: noop,
+        trigger: noop,
+        unsubscribe: noop,
+      };
     },
-  },
-});
+    connection: {
+      bind: noop,
+    },
+  };
+}
+
+let pusherEnabled = false;
+let pusher = createPusherStub();
+try {
+  const pusherKey = chatify?.pusher?.key;
+  if (pusherKey && typeof Pusher !== "undefined") {
+    Pusher.logToConsole = chatify.pusher.debug;
+    pusher = new Pusher(pusherKey, {
+      encrypted: chatify.pusher.options.encrypted,
+      cluster: chatify.pusher.options.cluster,
+      wsHost: chatify.pusher.options.host,
+      wsPort: chatify.pusher.options.port,
+      wssPort: chatify.pusher.options.port,
+      forceTLS: chatify.pusher.options.useTLS,
+      authEndpoint: chatify.pusherAuthEndpoint,
+      auth: {
+        headers: {
+          "X-CSRF-TOKEN": csrfToken,
+        },
+      },
+    });
+    pusherEnabled = true;
+  } else {
+    if (chatify?.pusher?.debug) {
+      console.warn(
+        "Chatify: Pusher is not configured; realtime disabled (contacts/messages will still load via AJAX)."
+      );
+    }
+  }
+} catch (e) {
+  if (chatify?.pusher?.debug) {
+    console.warn(
+      "Chatify: Failed to initialize Pusher; realtime disabled (contacts/messages will still load via AJAX).",
+      e
+    );
+  }
+  pusherEnabled = false;
+  pusher = createPusherStub();
+}
 /**
  *-------------------------------------------------------------
  * Re-usable methods
@@ -1267,24 +1306,28 @@ $(document).ready(function () {
   autosize($(".m-send"));
 
   // check if pusher has access to the channel [Internet status]
-  pusher.connection.bind("state_change", function (states) {
-    let selector = $(".internet-connection");
-    checkInternet(states.current, selector);
-    // listening for pusher:subscription_succeeded
-    channel.bind("pusher:subscription_succeeded", function () {
-      // On connection state change [Updating] and get [info & msgs]
-      if (getMessengerId() != 0) {
-        if (
-          $(".messenger-list-item")
-            .find("tr[data-action]")
-            .attr("data-action") == "1"
-        ) {
-          $(".messenger-listView").hide();
+  if (pusherEnabled) {
+    pusher.connection.bind("state_change", function (states) {
+      let selector = $(".internet-connection");
+      checkInternet(states.current, selector);
+      // listening for pusher:subscription_succeeded
+      channel.bind("pusher:subscription_succeeded", function () {
+        // On connection state change [Updating] and get [info & msgs]
+        if (getMessengerId() != 0) {
+          if (
+            $(".messenger-list-item")
+              .find("tr[data-action]")
+              .attr("data-action") == "1"
+          ) {
+            $(".messenger-listView").hide();
+          }
+          IDinfo(getMessengerId());
         }
-        IDinfo(getMessengerId());
-      }
+      });
     });
-  });
+  } else {
+    $(".internet-connection").hide();
+  }
 
   // tabs on click, show/hide...
   $(".messenger-listView-tabs a").on("click", function () {
