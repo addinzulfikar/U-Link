@@ -134,11 +134,14 @@ class MessagesController extends ChatifyMessagesController
      */
     private function getUserWithAvatar($user)
     {
+        $avatarFolder = config('chatify.user_avatar.folder');
+        $defaultAvatar = config('chatify.user_avatar.default');
+        $avatarPath = $user->avatar ?? $defaultAvatar;
+
         return [
             'id' => $user->id,
             'name' => $user->name,
-            'avatar' => asset('storage/' . config('chatify.user_avatar.folder') . '/' . 
-                        ($user->avatar ?? config('chatify.user_avatar.default'))),
+            'avatar' => asset("storage/{$avatarFolder}/{$avatarPath}"),
             'active_status' => $user->active_status ?? 0,
         ];
     }

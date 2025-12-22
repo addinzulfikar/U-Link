@@ -25,6 +25,8 @@ return [
         'custom' => env('CHATIFY_CUSTOM_ROUTES', false),
         'prefix' => env('CHATIFY_ROUTES_PREFIX', 'chatify'),
         'middleware' => env('CHATIFY_ROUTES_MIDDLEWARE', ['web','auth','chatify.role']),
+        // Note: namespace is kept as Chatify\Http\Controllers for fallback compatibility
+        // Routes explicitly reference App\Http\Controllers\Chatify\MessagesController
         'namespace' => env('CHATIFY_ROUTES_NAMESPACE', 'Chatify\Http\Controllers'),
     ],
     'api_routes' => [

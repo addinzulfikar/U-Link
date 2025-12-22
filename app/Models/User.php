@@ -157,30 +157,32 @@ class User extends Authenticatable
             return User::where('id', '!=', $this->id)->get();
         }
 
-        // Regular user can only see their assigned UMKM's admin
+        // Regular user can only see their assigned UMKM's admin and super admins
         if ($this->isUser()) {
             if (!$this->umkm_id) {
                 return collect();
             }
             
-            return User::where('role', self::ROLE_ADMIN_TOKO)
-                ->whereHas('umkm', function ($query) {
-                    $query->where('id', $this->umkm_id);
-                })
-                ->get()
-                ->merge(
-                    User::where('role', self::ROLE_SUPER_ADMIN)->get()
-                );
+            return User::where(function ($query) {
+                $query->where('role', self::ROLE_SUPER_ADMIN)
+                    ->orWhere(function ($q) {
+                        $q->where('role', self::ROLE_ADMIN_TOKO)
+                          ->whereHas('umkm', function ($umkmQuery) {
+                              $umkmQuery->where('id', $this->umkm_id);
+                          });
+                    });
+            })->get();
         }
 
         // Admin toko can see users under their UMKM and super admins
         if ($this->isAdminToko() && $this->umkm) {
-            return User::where('umkm_id', $this->umkm->id)
-                ->where('role', self::ROLE_USER)
-                ->get()
-                ->merge(
-                    User::where('role', self::ROLE_SUPER_ADMIN)->get()
-                );
+            return User::where(function ($query) {
+                $query->where('role', self::ROLE_SUPER_ADMIN)
+                    ->orWhere(function ($q) {
+                        $q->where('role', self::ROLE_USER)
+                          ->where('umkm_id', $this->umkm->id);
+                    });
+            })->get();
         }
 
         return collect();
