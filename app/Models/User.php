@@ -28,6 +28,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'umkm_id',
     ];
 
     /**
@@ -78,11 +79,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the UMKM owned by this user
+     * Get the UMKM owned by this user (for admin_toko)
      */
     public function umkm()
     {
         return $this->hasOne(Umkm::class, 'owner_user_id');
+    }
+
+    /**
+     * Get the UMKM this user is associated with (for regular users)
+     */
+    public function assignedUmkm()
+    {
+        return $this->belongsTo(Umkm::class, 'umkm_id');
     }
 
     /**
@@ -99,5 +108,81 @@ class User extends Authenticatable
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    /**
+     * Check if this user can chat with another user
+     */
+    public function canChatWith(User $targetUser): bool
+    {
+        // Super admin can chat with everyone
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // If target is super admin, all roles can chat with them
+        if ($targetUser->isSuperAdmin()) {
+            return true;
+        }
+
+        // Regular user can only chat with their assigned UMKM's admin
+        if ($this->isUser()) {
+            return $targetUser->isAdminToko() 
+                && $this->umkm_id 
+                && $targetUser->umkm 
+                && $this->umkm_id === $targetUser->umkm->id;
+        }
+
+        // Admin toko can chat with users under their UMKM
+        if ($this->isAdminToko()) {
+            if ($targetUser->isUser()) {
+                return $this->umkm 
+                    && $targetUser->umkm_id 
+                    && $this->umkm->id === $targetUser->umkm_id;
+            }
+            // Admin toko cannot chat with other admin toko
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get list of users this user can chat with
+     */
+    public function getAllowedChatUsers()
+    {
+        // Super admin can chat with everyone
+        if ($this->isSuperAdmin()) {
+            return User::where('id', '!=', $this->id)->get();
+        }
+
+        // Regular user can only see their assigned UMKM's admin
+        if ($this->isUser()) {
+            if (!$this->umkm_id) {
+                return collect();
+            }
+            
+            return User::where('role', self::ROLE_ADMIN_TOKO)
+                ->whereHas('umkm', function ($query) {
+                    $query->where('id', $this->umkm_id);
+                })
+                ->get()
+                ->merge(
+                    User::where('role', self::ROLE_SUPER_ADMIN)->get()
+                );
+        }
+
+        // Admin toko can see users under their UMKM and super admins
+        if ($this->isAdminToko() && $this->umkm) {
+            return User::where('umkm_id', $this->umkm->id)
+                ->where('role', self::ROLE_USER)
+                ->get()
+                ->merge(
+                    User::where('role', self::ROLE_SUPER_ADMIN)->get()
+                );
+        }
+
+        return collect();
     }
 }
