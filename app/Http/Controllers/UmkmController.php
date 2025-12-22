@@ -24,7 +24,7 @@ class UmkmController extends Controller
     public function show($slug)
     {
         $umkm = Umkm::with(['owner', 'products' => function ($query) {
-            $query->where('is_active', true);
+            $query->whereRaw('is_active is true');
         }])->where('slug', $slug)->firstOrFail();
 
         $isFavorited = false;

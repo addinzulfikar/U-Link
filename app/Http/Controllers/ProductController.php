@@ -40,7 +40,7 @@ class ProductController extends Controller
             ->whereHas('umkm', function ($q) {
                 $q->where('status', 'approved');
             })
-            ->where('is_active', true);
+            ->whereRaw('is_active is true');
 
         // Filter by type
         if ($request->has('type') && in_array($request->type, [Product::TYPE_PRODUCT, Product::TYPE_SERVICE])) {

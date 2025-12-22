@@ -96,6 +96,12 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+            'options' => extension_loaded('pdo_pgsql') ? array_filter([
+                // Avoid Postgres "cached plan must not change result type" after schema changes.
+                // Also helps keep boolean bindings as boolean (not 0/1).
+                \PDO::PGSQL_ATTR_DISABLE_PREPARES => env('PGSQL_DISABLE_PREPARES', true),
+                \PDO::ATTR_EMULATE_PREPARES => env('PGSQL_EMULATE_PREPARES', false),
+            ]) : [],
         ],
 
         'sqlsrv' => [

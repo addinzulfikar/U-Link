@@ -32,7 +32,7 @@ class DashboardController extends Controller
             ->whereHas('umkm', function ($q) {
                 $q->where('status', Umkm::STATUS_APPROVED);
             })
-            ->where('is_active', true)
+            ->whereRaw('is_active is true')
             ->latest()
             ->take(6)
             ->get();
