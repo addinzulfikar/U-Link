@@ -10,6 +10,13 @@
 
 @section('content')
 <div>
+    <!-- Add User Button -->
+    <div class="mb-4">
+        <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Tambah User Baru
+        </a>
+    </div>
+
     <!-- Users Table -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
@@ -22,6 +29,7 @@
                             <th>Role</th>
                             <th>Tanggal Daftar</th>
                             <th>Status</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,10 +56,24 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-outline-primary">Edit</a>
+                                        @if($user->id !== auth()->id())
+                                            <form method="POST" action="{{ route('admin.users.destroy', $user->id) }}" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Yakin ingin menghapus user ini?')">Hapus</button>
+                                            </form>
+                                        @else
+                                            <button type="button" class="btn btn-outline-secondary" disabled title="Tidak dapat menghapus akun sendiri" aria-label="Tidak dapat menghapus akun sendiri">Hapus</button>
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-secondary">Tidak ada user</td>
+                                <td colspan="6" class="text-center py-4 text-secondary">Tidak ada user</td>
                             </tr>
                         @endforelse
                     </tbody>

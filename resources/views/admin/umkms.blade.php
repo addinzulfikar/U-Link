@@ -77,6 +77,11 @@
                                                 <button type="submit" class="btn btn-danger">Tolak</button>
                                             </form>
                                         @endif
+                                        <form method="POST" action="{{ route('admin.umkms.destroy', $umkm->id) }}" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Yakin ingin menghapus UMKM ini? Data produk terkait juga akan terhapus.')">Hapus</button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

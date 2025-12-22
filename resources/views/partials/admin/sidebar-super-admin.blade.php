@@ -9,7 +9,7 @@
 </a>
 
 @php
-    $managementOpen = request()->routeIs('admin.users') || request()->routeIs('admin.umkms') || request()->routeIs('admin.categories');
+    $managementOpen = request()->routeIs('admin.users') || request()->routeIs('admin.umkms') || request()->routeIs('admin.categories') || request()->routeIs('admin.products');
 @endphp
 <div class="admin-nav-section">Manajemen</div>
 <button
@@ -30,6 +30,9 @@
         </a>
         <a href="{{ route('admin.umkms') }}" class="admin-nav-item {{ request()->routeIs('admin.umkms') ? 'active' : '' }}">
             <span class="admin-nav-icon">🏪</span> Kelola UMKM
+        </a>
+        <a href="{{ route('admin.products') }}" class="admin-nav-item {{ request()->routeIs('admin.products') ? 'active' : '' }}">
+            <span class="admin-nav-icon">📦</span> Kelola Produk
         </a>
         <a href="{{ route('admin.categories') }}" class="admin-nav-item {{ request()->routeIs('admin.categories') ? 'active' : '' }}">
             <span class="admin-nav-icon">📁</span> Kelola Kategori

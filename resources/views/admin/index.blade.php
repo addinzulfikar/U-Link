@@ -129,6 +129,9 @@
                         <a href="{{ route('admin.umkms') }}" class="btn btn-outline-primary">
                             <span class="admin-nav-icon">🏪</span> Kelola UMKM
                         </a>
+                        <a href="{{ route('admin.products') }}" class="btn btn-outline-primary">
+                            <span class="admin-nav-icon">📦</span> Kelola Produk
+                        </a>
                         <a href="{{ route('admin.categories') }}" class="btn btn-outline-primary">
                             <span class="admin-nav-icon">📁</span> Kelola Kategori
                         </a>
