@@ -1,6 +1,21 @@
 /* Import Inter font for Xero-style UI */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* SF Pro (Apple) cannot be redistributed here; use locally-installed font if available. */
+@font-face {
+    font-family: 'SF Pro';
+    src: local('SF Pro Display'), local('SF Pro Text'), local('SF Pro');
+    font-style: normal;
+    font-weight: 100 900;
+}
+
+@font-face {
+    font-family: 'SF Pro';
+    src: local('SF Pro Display Italic'), local('SF Pro Text Italic'), local('SF Pro Italic');
+    font-style: italic;
+    font-weight: 100 900;
+}
+
 @import 'tailwindcss';
 
 @import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,7 +32,8 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'SF Pro';
+    --font-sans-fallback: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
@@ -31,7 +47,48 @@
 .ulink-card {
     border: 1px solid #E5E7EB;
     background: #FFFFFF;
-    border-radius: 8px;
+    border-radius: 12px;
+}
+
+/* SaaS polish: make Bootstrap navbar/dropdowns feel consistent */
+.ulink-nav {
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.ulink-nav .navbar-brand {
+    letter-spacing: -0.01em;
+}
+
+.ulink-nav .nav-link {
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem;
+}
+
+.ulink-nav .nav-link:hover {
+    background: #F3F4F6;
+}
+
+.ulink-dropdown {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 0.5rem;
+    min-width: 220px;
+}
+
+.ulink-dropdown .dropdown-item {
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem;
+}
+
+.ulink-dropdown .dropdown-item:hover,
+.ulink-dropdown .dropdown-item:focus {
+    background: #F3F4F6;
+    color: #111827;
+}
+
+.ulink-dropdown .dropdown-divider {
+    border-color: #E5E7EB;
 }
 
 /* Xero-style: Calm product card, subtle hover */
@@ -39,7 +96,7 @@
     transition: all 0.2s ease;
     border: 1px solid #E5E7EB;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 12px;
     background: #FFFFFF;
 }
 
@@ -91,7 +148,7 @@
 
 /* Search Bar */
 .search-bar {
-    border-radius: 8px;
+    border-radius: 12px;
     border: 2px solid var(--bs-border-color);
     padding: 0.75rem 1rem;
     transition: all 0.3s ease;
@@ -144,7 +201,7 @@
 /* Xero-style: Clean, minimal stat cards */
 .stat-card {
     border: 1px solid #E5E7EB;
-    border-radius: 8px;
+    border-radius: 12px;
     background: #FFFFFF;
     transition: all 0.2s ease;
 }

@@ -48,7 +48,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['SF Pro'],
       },
       fontSize: {
         // Xero typography scale
@@ -62,7 +62,7 @@ export default {
         'caption': ['0.75rem', { lineHeight: '1.4', fontWeight: '400' }],
       },
       borderRadius: {
-        'xero': '8px',
+        'xero': '12px',
       },
       boxShadow: {
         'xero-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
