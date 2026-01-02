@@ -37,7 +37,18 @@
                                 <small class="text-secondary">
                                     {{ $umkm->products()->count() }} produk/jasa
                                 </small>
-                                <a href="{{ route('umkms.show', $umkm->slug) }}" class="btn btn-sm btn-primary">Lihat Toko</a>
+                                <div class="d-flex gap-2">
+                                    @auth
+                                        @if($umkm->owner && Auth::user()->canChatWith($umkm->owner))
+                                            <a
+                                                href="{{ url('/' . config('chatify.routes.prefix') . '/' . $umkm->owner->id) }}"
+                                                class="btn btn-sm btn-outline-primary"
+                                            >💬 Chat Admin</a>
+                                        @endif
+                                    @endauth
+
+                                    <a href="{{ route('umkms.show', $umkm->slug) }}" class="btn btn-sm btn-primary">Lihat Toko</a>
+                                </div>
                             </div>
                         </div>
                     </div>

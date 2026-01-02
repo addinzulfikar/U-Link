@@ -151,23 +151,6 @@
             </div>
         @endif
 
-        <!-- Quick Actions - Xero-style: Minimal, no icons -->
-        <div class="bg-white border border-gray-200 rounded-lg p-6">
-            <h5 class="text-base font-semibold text-gray-900 mb-4">Aksi Cepat</h5>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @if($umkm->isApproved())
-                    <a href="{{ route('products.create') }}" class="block bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg p-4 transition-colors">
-                        <h6 class="text-sm font-semibold text-gray-900 mb-1">Tambah Produk/Jasa</h6>
-                        <p class="text-xs text-gray-500">Tambahkan produk atau jasa baru</p>
-                    </a>
-                @endif
-                <a href="{{ route('umkm.edit') }}" class="block bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg p-4 transition-colors">
-                    <h6 class="text-sm font-semibold text-gray-900 mb-1">Edit Profil UMKM</h6>
-                    <p class="text-xs text-gray-500">Perbarui informasi UMKM</p>
-                </a>
-            </div>
-        </div>
-
     @endif
 </div>
 @endsection

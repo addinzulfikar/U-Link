@@ -115,6 +115,11 @@ class User extends Authenticatable
      */
     public function canChatWith(User $targetUser): bool
     {
+        // Never chat with self
+        if ($this->id === $targetUser->id) {
+            return false;
+        }
+
         // Super admin can chat with everyone
         if ($this->isSuperAdmin()) {
             return true;
@@ -135,7 +140,12 @@ class User extends Authenticatable
             if ($targetUser->isUser()) {
                 return true;
             }
-            // Admin toko cannot chat with other admin toko
+
+            // Admin toko can chat with other admin toko
+            if ($targetUser->isAdminToko()) {
+                return true;
+            }
+
             return false;
         }
 
@@ -154,12 +164,16 @@ class User extends Authenticatable
 
         // Regular user can see all store admins + super admins
         if ($this->isUser()) {
-            return User::whereIn('role', [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN_TOKO])->get();
+            return User::where('id', '!=', $this->id)
+                ->whereIn('role', [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN_TOKO])
+                ->get();
         }
 
         // Admin toko can see all users + super admins
         if ($this->isAdminToko()) {
-            return User::whereIn('role', [self::ROLE_SUPER_ADMIN, self::ROLE_USER])->get();
+            return User::where('id', '!=', $this->id)
+                ->whereIn('role', [self::ROLE_SUPER_ADMIN, self::ROLE_USER, self::ROLE_ADMIN_TOKO])
+                ->get();
         }
 
         return collect();

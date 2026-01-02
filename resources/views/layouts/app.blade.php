@@ -69,7 +69,7 @@
                                         <li><hr class="dropdown-divider" style="border-color: #E5E7EB;"></li>
                                         <li><a class="dropdown-item text-body-sm font-normal text-text-secondary" href="{{ route('umkm.manage') }}">Kelola UMKM</a></li>
                                         <li><a class="dropdown-item text-body-sm font-normal text-text-secondary" href="{{ route('products.create') }}">Tambah Produk/Jasa</a></li>
-                                        <li><a class="dropdown-item text-body-sm font-normal text-text-secondary" href="{{ route('spreadsheet.analyzer') }}">Input Data</a></li>
+                                        <li><a class="dropdown-item text-body-sm font-normal text-text-secondary" href="{{ route('spreadsheet.analyzer') }}">Upload Data Keuangan</a></li>
                                     @endif
 
                                     @if($user->isSuperAdmin())

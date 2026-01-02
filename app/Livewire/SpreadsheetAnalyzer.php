@@ -126,7 +126,11 @@ class SpreadsheetAnalyzer extends Component
 
     public function uploadAndAnalyze()
     {
-        $this->validate();
+        // Feature removed: spreadsheet analysis upload has been superseded by Upload Data Keuangan.
+        $this->errorMessage = 'Fitur Upload Spreadsheet sudah dinonaktifkan. Silakan gunakan Upload Data Keuangan.';
+        $this->successMessage = null;
+
+        return;
 
         $this->errorMessage = null;
         $this->successMessage = null;
@@ -186,12 +190,18 @@ class SpreadsheetAnalyzer extends Component
         if ($upload && $upload->umkm_id === Auth::user()->umkm?->id) {
             $this->selectedUpload = $upload;
             $this->analysisResult = $upload->analysis_result;
-            $this->loadSheetPreviews();
+            $this->sheetPreviews = [];
         }
     }
 
     public function reanalyze($uploadId)
     {
+        // Feature removed: spreadsheet analysis has been disabled.
+        $this->errorMessage = 'Fitur Analisis Ulang Spreadsheet sudah dinonaktifkan. Silakan gunakan Upload Data Keuangan.';
+        $this->successMessage = null;
+
+        return;
+
         $upload = SpreadsheetUpload::find($uploadId);
         if (! $upload || $upload->umkm_id !== Auth::user()->umkm?->id) {
             $this->errorMessage = 'File tidak ditemukan.';
@@ -298,6 +308,12 @@ class SpreadsheetAnalyzer extends Component
 
     public function mergeProductsFromSelectedUpload()
     {
+        // Feature removed: product merge from spreadsheet upload is disabled.
+        $this->errorMessage = 'Fitur Merge Produk dari Spreadsheet sudah dinonaktifkan.';
+        $this->successMessage = null;
+
+        return;
+
         if (! $this->selectedUpload) {
             $this->errorMessage = 'Tidak ada file yang dipilih untuk di-merge.';
 

@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
-@section('title', 'Analisis Spreadsheet - U-LINK')
+@section('title', 'Upload Data Keuangan - U-LINK')
 
-@section('page-title', 'Analisis Spreadsheet')
+@section('page-title', 'Upload Data Keuangan')
 
 @section('sidebar')
     @include('partials.admin.sidebar-admin-toko')

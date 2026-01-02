@@ -27,23 +27,23 @@
                             @endif
                         </div>
                         @auth
-                            @if(Auth::user()->isUser())
-                                <div class="d-flex gap-2">
-                                    @if($umkm->owner_user_id)
-                                        <a
-                                            href="{{ url('/' . config('chatify.routes.prefix') . '/' . $umkm->owner_user_id) }}"
-                                            class="btn btn-outline-primary"
-                                        >💬 Chat Admin</a>
-                                    @endif
+                            <div class="d-flex gap-2">
+                                @if($umkm->owner && Auth::user()->canChatWith($umkm->owner))
+                                    <a
+                                        href="{{ url('/' . config('chatify.routes.prefix') . '/' . $umkm->owner->id) }}"
+                                        class="btn btn-outline-primary"
+                                    >💬 Chat Admin</a>
+                                @endif
 
+                                @if(Auth::user()->isUser())
                                     <form method="POST" action="{{ route('favorites.toggle', $umkm->id) }}">
                                         @csrf
                                         <button type="submit" class="btn btn-{{ $isFavorited ? 'danger' : 'outline-danger' }}">
                                             {{ $isFavorited ? '❤️ Favorit' : '🤍 Tambah Favorit' }}
                                         </button>
                                     </form>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         @endauth
                     </div>
                     @if($umkm->description)
