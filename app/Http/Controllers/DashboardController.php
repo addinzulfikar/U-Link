@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Favorite;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\Umkm;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +49,13 @@ class DashboardController extends Controller
      */
     public function adminToko()
     {
-        $umkm = Auth::user()->umkm;
+        $user = Auth::user();
+        $umkm = $user->umkm;
+
+        // Fallback for setups where admin_toko is linked via users.umkm_id
+        if (! $umkm) {
+            $umkm = $user->assignedUmkm;
+        }
 
         $stats = [
             'total_products' => 0,
@@ -71,7 +79,15 @@ class DashboardController extends Controller
         if ($umkm) {
             $stats['total_products'] = $umkm->products()->where('type', Product::TYPE_PRODUCT)->count();
             $stats['total_services'] = $umkm->products()->where('type', Product::TYPE_SERVICE)->count();
-            $stats['total_favorites'] = $umkm->favorites()->count();
+            $stats['total_favorites'] = Favorite::where('umkm_id', $umkm->id)->count();
+
+            $avgRating = Review::query()
+                ->whereHas('product', function ($q) use ($umkm) {
+                    $q->where('umkm_id', $umkm->id);
+                })
+                ->avg('rating');
+
+            $stats['average_rating'] = $avgRating ? (float) $avgRating : 0.0;
 
             $recentProducts = $umkm->products()->latest()->take(5)->get();
 
